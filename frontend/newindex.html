@@ -1,0 +1,1245 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkillSwap - Learn Skills by Teaching Skills.</title>
+    <meta name="description" content="Connect with skilled individuals.Learn new skills through live sessions, teach your expertise, and build meaningful connections in our vibrant learning community." />
+    <meta name="author" content="Skill Swap" />
+
+    <meta property="og:title" content="SkillsSwap - Learn Skills by Teaching Skills." />
+    <meta property="og:description" content="Connect with skilled individuals through interactive skill-sharing experiences and live learning sessions." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@lovable_dev" />
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <!-- Bootstrap CSS for responsive modal -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <link rel="stylesheet" href="css/style-1.css">
+    <style>
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal-container {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal-container {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        /* Form styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(30, 95, 116, 0.2);
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(90deg, var(--primary-color) 60%, var(--accent-color) 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-submit:hover {
+            background: linear-gradient(90deg, var(--primary-hover) 60%, var(--accent-color) 100%);
+        }
+        
+        .form-footer {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .form-footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: #e53935;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        
+        /* Social login buttons */
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .social-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .modal-container {
+                width: 95%;
+            }
+            
+            .modal-body {
+                padding: 1rem;
+            }
+        }
+        
+        /* CSS variables */
+        :root {
+            --primary-color: #133b5c;
+            --primary-hover: #0a2342;
+            --accent-color: #1e5f74;
+        }
+
+        
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Logo -->
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i data-lucide="book-open"></i>
+                    </div>
+                    <span class="logo-text">SkillSwap</span>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="nav">
+                    <a href="#features" class="nav-link">Features</a>
+                    <a href="#how-it-works" class="nav-link">How It Works</a>
+                    <a href="#skills" class="nav-link">Skills</a>
+                    
+                </nav>
+
+                <!-- CTA Buttons -->
+                <div class="header-actions">
+                    <button class="btn btn-ghost" id="signInBtn">Sign In</button>
+                    <button class="btn btn-hero" id="getStartedBtn">
+                        <i data-lucide="user-plus"></i>
+                        Get Started
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <nav class="mobile-nav">
+            <a href="#features" class="mobile-nav-link">Features</a>
+            <a href="#how-it-works" class="mobile-nav-link">How It Works</a>
+            <a href="#skills" class="mobile-nav-link">Skills</a>
+            
+        </nav>
+        <div class="mobile-actions">
+            <button class="btn btn-ghost" id="mobileSignInBtn">Sign In</button>
+            <button class="btn btn-hero" id="mobileGetStartedBtn">
+                <i data-lucide="user-plus"></i>
+                Get Started
+            </button>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <!-- Floating Elements -->
+        <div class="floating-element floating-1">
+            <div class="floating-icon" >
+                <i data-lucide="book-open" style="color:navy;"></i>
+            </div>
+        </div>
+        <div class="floating-element floating-2">
+            <div class="floating-icon">
+                <i data-lucide="users" style="color:navy;"></i>
+            </div>
+        </div>
+        <div class="floating-element floating-3">
+            <div class="floating-icon">
+                <i data-lucide="video" style="color:navy;"></i>
+            </div>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-headline">
+                <i data-lucide="handshake" class="headline-icon" style="color:navy;"></i>
+                Welcome to <span class="highlight">SkillSwap</span>
+            </h1>
+            <h2 class="hero-subheading">Learn Skills by Teaching Skills.</h2>
+            <p class="hero-tagline">*No Money. Just Value.*</p>
+            <p class="hero-description">
+                Connect with skilled individuals. Learn new skills through live sessions,
+                teach your expertise, and build meaningful connections in our vibrant community.
+            </p>
+            <div class="hero-actions">
+                <button class="btn btn-hero btn-lg" id="heroSignInBtn">
+                    Start Learning Now
+                    <i data-lucide="arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Scroll Indicator -->
+        <div class="scroll-indicator">
+            <div class="scroll-mouse" >
+                <div class="scroll-dot" ></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">Features</span>
+                <h2 class="section-title">
+                    Everything You Need to
+                    <span class="gradient-text">Skill Swap</span>
+                </h2>
+                <p class="section-description">
+                    Our platform combines cutting-edge technology with human connection to create 
+                    the perfect learning environment.
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">
+                            <i data-lucide="book-open"></i>
+                        </div>
+                        <span class="feature-badge">Popular</span>
+                    </div>
+                    <h3 class="feature-title">Learn Any Skill</h3>
+                    <p class="feature-description">Browse thousands of skills from coding to cooking, taught by experts worldwide.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">
+                            <i data-lucide="users"></i>
+                        </div>
+                        <span class="feature-badge">New</span>
+                    </div>
+                    <h3 class="feature-title">Teach & Share</h3>
+                    <p class="feature-description">Share your expertise and earn while helping others grow their skills.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">
+                            <i data-lucide="video"></i>
+                        </div>
+                        <span class="feature-badge">Featured</span>
+                    </div>
+                    <h3 class="feature-title">Live Sessions</h3>
+                    <p class="feature-description">Connect in real-time with interactive video sessions and hands-on learning.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">
+                            <i data-lucide="target"></i>
+                        </div>
+                        <span class="feature-badge">AI-Powered</span>
+                    </div>
+                    <h3 class="feature-title">Smart Matching</h3>
+                    <p class="feature-description">Get personalized recommendations based on your interests and skill level.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">
+                            <i data-lucide="message-circle"></i>
+                        </div>
+                        <span class="feature-badge">24/7</span>
+                    </div>
+                    <h3 class="feature-title">Community Chat</h3>
+                    <p class="feature-description">Join discussions, ask questions, and connect with like-minded learners.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon">
+                            <i data-lucide="award"></i>
+                        </div>
+                        <span class="feature-badge">Verified</span>
+                    </div>
+                    <h3 class="feature-title">Certifications</h3>
+                    <p class="feature-description">Earn verified certificates and badges to showcase your newly acquired skills.</p>
+                </div>
+            </div>
+
+            <!-- Bottom CTA -->
+            <div class="features-footer">
+                <div class="features-benefits">
+                    <div class="benefit">
+                        <i data-lucide="clock"></i>
+                        <span>24/7 Support</span>
+                    </div>
+                    <div class="benefit">
+                        <i data-lucide="globe"></i>
+                        <span>Global Community</span>
+                    </div>
+                    <div class="benefit">
+                        <i data-lucide="award"></i>
+                        <span>Certified Learning</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">How It Works</span>
+                <h2 class="section-title">
+                    Start Your
+                    <span class="gradient-text secondary">Learning Journey</span>
+                </h2>
+                <p class="section-description">
+                    Getting started is simple. Follow these four easy steps to begin learning and teaching.
+                </p>
+            </div>
+
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-content">
+                        <div class="step-icon-wrapper">
+                            <div class="step-icon">
+                                <i data-lucide="user-plus"></i>
+                            </div>
+                            <div class="step-number">01</div>
+                        </div>
+
+                        <div class="step-card">
+                            <h3 class="step-title">Create Your Profile</h3>
+                            <p class="step-description">
+                                Sign up and tell us about your skills and learning goals. Build a profile that showcases your expertise.
+                            </p>
+                            
+                            <div class="step-features">
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Skill assessment</span>
+                                </div>
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Goal setting</span>
+                                </div>
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Profile verification</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-connector">
+                        <div class="connector-arrow">
+                            <i data-lucide="arrow-down"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-content">
+                        <div class="step-icon-wrapper">
+                            <div class="step-icon">
+                                <i data-lucide="search"></i>
+                            </div>
+                            <div class="step-number">02</div>
+                        </div>
+
+                        <div class="step-card">
+                            <h3 class="step-title">Discover & Connect</h3>
+                            <p class="step-description">
+                                Browse skills or get personalized recommendations. Connect with teachers and learners who match your interests.
+                            </p>
+                            
+                            <div class="step-features">
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>AI-powered matching</span>
+                                </div>
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Skill browsing</span>
+                                </div>
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Teacher profiles</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-connector">
+                        <div class="connector-arrow">
+                            <i data-lucide="arrow-down"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-content">
+                        <div class="step-icon-wrapper">
+                            <div class="step-icon">
+                                <i data-lucide="calendar"></i>
+                            </div>
+                            <div class="step-number">03</div>
+                        </div>
+
+                        <div class="step-card">
+                            <h3 class="step-title">Book Live Sessions</h3>
+                            <p class="step-description">
+                                Schedule one-on-one or group sessions with your chosen instructor. Join interactive learning experiences.
+                            </p>
+                            
+                            <div class="step-features">
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Flexible scheduling</span>
+                                </div>
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Video sessions</span>
+                                </div>
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Interactive tools</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="step-connector">
+                        <div class="connector-arrow">
+                            <i data-lucide="arrow-down"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-content">
+                        <div class="step-icon-wrapper">
+                            <div class="step-icon">
+                                <i data-lucide="trophy"></i>
+                            </div>
+                            <div class="step-number">04</div>
+                        </div>
+
+                        <div class="step-card">
+                            <h3 class="step-title">Learn & Grow</h3>
+                            <p class="step-description">
+                                Participate in sessions, complete assignments, and track your progress. Earn certificates and build your skill portfolio.
+                            </p>
+                            
+                            <div class="step-features">
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Progress tracking</span>
+                                </div>
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Certificates</span>
+                                </div>
+                                <div class="step-feature">
+                                    <i data-lucide="check-circle"></i>
+                                    <span>Skill validation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="how-it-works-cta">
+                <div class="cta-card">
+                    <h3 class="cta-title">Ready to Start Your Journey?</h3>
+                    <p class="cta-description">
+                        Join thousands of learners and teachers who are already growing their skills on Skill Swap.
+                    </p>
+                    <button class="btn btn-skill btn-lg" id="ctaGetStartedBtn">
+                        <i data-lucide="user-plus"></i>
+                        Join the Community
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="skills">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">Popular Skills</span>
+                <h2 class="section-title">
+                    Explore Our
+                    <span class="gradient-text accent">Skill Categories</span>
+                </h2>
+                <p class="section-description">
+                    From technical skills to creative arts, discover what you're passionate about learning.
+                </p>
+            </div>
+
+            <!-- Skill Categories Grid -->
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <div class="skill-icon">
+                            <i data-lucide="code"></i>
+                        </div>
+                        <div class="skill-rating">
+                            <i data-lucide="star"></i>
+                            <span>4.9</span>
+                        </div>
+                    </div>
+                    <h3 class="skill-title">Programming</h3>
+                    <p class="skill-description">Learn coding from basics to advanced</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">JavaScript</span>
+                        <span class="skill-tag">Python</span>
+                        <span class="skill-tag">React</span>
+                        <span class="skill-tag">AI/ML</span>
+                    </div>
+                    <div class="skill-stats">
+                        <div class="skill-stat">
+                            <i data-lucide="users"></i>
+                            <span>2.5k students</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <div class="skill-icon">
+                            <i data-lucide="palette"></i>
+                        </div>
+                        <div class="skill-rating">
+                            <i data-lucide="star"></i>
+                            <span>4.8</span>
+                        </div>
+                    </div>
+                    <h3 class="skill-title">Design</h3>
+                    <p class="skill-description">Master visual design and creativity</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">UI/UX</span>
+                        <span class="skill-tag">Graphic Design</span>
+                        <span class="skill-tag">Figma</span>
+                        <span class="skill-tag">Illustration</span>
+                    </div>
+                    <div class="skill-stats">
+                        <div class="skill-stat">
+                            <i data-lucide="users"></i>
+                            <span>1.8k students</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <div class="skill-icon">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                        <div class="skill-rating">
+                            <i data-lucide="star"></i>
+                            <span>4.7</span>
+                        </div>
+                    </div>
+                    <h3 class="skill-title">Business</h3>
+                    <p class="skill-description">Develop entrepreneurial skills</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Marketing</span>
+                        <span class="skill-tag">Sales</span>
+                        <span class="skill-tag">Leadership</span>
+                        <span class="skill-tag">Strategy</span>
+                    </div>
+                    <div class="skill-stats">
+                        <div class="skill-stat">
+                            <i data-lucide="users"></i>
+                            <span>3.2k students</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <div class="skill-icon">
+                            <i data-lucide="globe"></i>
+                        </div>
+                        <div class="skill-rating">
+                            <i data-lucide="star"></i>
+                            <span>4.9</span>
+                        </div>
+                    </div>
+                    <h3 class="skill-title">Languages</h3>
+                    <p class="skill-description">Connect through communication</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">English</span>
+                        <span class="skill-tag">Spanish</span>
+                        <span class="skill-tag">Mandarin</span>
+                        <span class="skill-tag">French</span>
+                    </div>
+                    <div class="skill-stats">
+                        <div class="skill-stat">
+                            <i data-lucide="users"></i>
+                            <span>4.1k students</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <div class="skill-icon">
+                            <i data-lucide="music"></i>
+                        </div>
+                        <div class="skill-rating">
+                            <i data-lucide="star"></i>
+                            <span>4.8</span>
+                        </div>
+                    </div>
+                    <h3 class="skill-title">Music & Arts</h3>
+                    <p class="skill-description">Express your creative side</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Guitar</span>
+                        <span class="skill-tag">Piano</span>
+                        <span class="skill-tag">Singing</span>
+                        <span class="skill-tag">Digital Art</span>
+                    </div>
+                    <div class="skill-stats">
+                        <div class="skill-stat">
+                            <i data-lucide="users"></i>
+                            <span>1.5k students</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="skill-card">
+                    <div class="skill-header">
+                        <div class="skill-icon">
+                            <i data-lucide="chef-hat"></i>
+                        </div>
+                        <div class="skill-rating">
+                            <i data-lucide="star"></i>
+                            <span>4.6</span>
+                        </div>
+                    </div>
+                    <h3 class="skill-title">Culinary</h3>
+                    <p class="skill-description">Master the art of cooking</p>
+                    <div class="skill-tags">
+                        <span class="skill-tag">Baking</span>
+                        <span class="skill-tag">International Cuisine</span>
+                        <span class="skill-tag">Nutrition</span>
+                        <span class="skill-tag">Food Photography</span>
+                    </div>
+                    <div class="skill-stats">
+                        <div class="skill-stat">
+                            <i data-lucide="users"></i>
+                            <span>2.1k students</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <!-- Newsletter Section -->
+        <div class="newsletter">
+            <div class="container">
+                <div class="newsletter-content">
+                    <span class="badge newsletter-badge">Stay Updated</span>
+                    <h3 class="newsletter-title">
+                        Get the latest updates on new skills and features
+                    </h3>
+                    <p class="newsletter-description">
+                        Join our newsletter to stay informed about new courses, features, and community highlights.
+                    </p>
+                    <div class="newsletter-form">
+                        <input
+                            type="email"
+                            placeholder="Enter your email"
+                            class="newsletter-input"
+                            id="emailInput"
+                        />
+                        <button class="btn btn-secondary btn-lg" onclick="subscribeNewsletter()">
+                            Subscribe
+                            <i data-lucide="arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Footer -->
+        <div class="footer-main">
+            <div class="container">
+                <div class="footer-grid">
+                    <!-- Brand Column -->
+                    <div class="footer-brand">
+                        <div class="footer-logo">
+                            <div class="footer-logo-icon">
+                                <i data-lucide="book-open"></i>
+                            </div>
+                            <span class="footer-logo-text">Skill Swap</span>
+                        </div>
+                        <p class="footer-brand-description">
+                            Connecting learners and teachers worldwide through interactive skill-sharing experiences.
+                        </p>
+                        <div class="social-links">
+                            <a href="#" class="social-link" aria-label="Twitter">
+                                <i data-lucide="twitter"></i>
+                            </a>
+                            <a href="#" class="social-link" aria-label="LinkedIn">
+                                <i data-lucide="linkedin"></i>
+                            </a>
+                            <a href="#" class="social-link" aria-label="Instagram">
+                                <i data-lucide="instagram"></i>
+                            </a>
+                            <a href="#" class="social-link" aria-label="Email">
+                                <i data-lucide="mail"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Platform Links -->
+                    <div class="footer-column">
+                        <h4 class="footer-column-title">Platform</h4>
+                        <ul class="footer-links">
+                            <li><a href="#how-it-works" class="footer-link">How it Works</a></li>
+                            <li><a href="#features" class="footer-link">Features</a></li>
+                            <li><a href="#skills" class="footer-link">Skills</a></li>
+                            <li><a href="#pricing" class="footer-link">Pricing</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Community Links -->
+                    <div class="footer-column">
+                        <h4 class="footer-column-title">Community</h4>
+                        <ul class="footer-links">
+                            <li><a href="#learners" class="footer-link">For Learners</a></li>
+                            <li><a href="#teachers" class="footer-link">For Teachers</a></li>
+                            <li><a href="#stories" class="footer-link">Success Stories</a></li>
+                            <li><a href="#blog" class="footer-link">Blog</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Support Links -->
+                    <div class="footer-column">
+                        <h4 class="footer-column-title">Support</h4>
+                        <ul class="footer-links">
+                            <li><a href="#help" class="footer-link">Help Center</a></li>
+                            <li><a href="#contact" class="footer-link">Contact Us</a></li>
+                            <li><a href="#safety" class="footer-link">Safety</a></li>
+                            <li><a href="#trust" class="footer-link">Trust & Safety</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Links -->
+                    <div class="footer-column">
+                        <h4 class="footer-column-title">Company</h4>
+                        <ul class="footer-links">
+                            <li><a href="#about" class="footer-link">About Us</a></li>
+                            <li><a href="#careers" class="footer-link">Careers</a></li>
+                            <li><a href="#press" class="footer-link">Press</a></li>
+                            <li><a href="#partnerships" class="footer-link">Partnerships</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="footer-bottom-content">
+                    <div class="copyright">
+                        © 2024 Skill Swap. All rights reserved.
+                    </div>
+                    <div class="legal-links">
+                        <a href="#privacy" class="legal-link">Privacy Policy</a>
+                        <a href="#terms" class="legal-link">Terms of Service</a>
+                        <a href="#cookies" class="legal-link">Cookie Policy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Sign In Modal -->
+    <div class="modal-overlay" id="signInModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Sign In</h3>
+                <button class="modal-close" id="closeSignInModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required>
+                        <div class="error-message" id="loginEmailError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                        <div class="error-message" id="loginPasswordError"></div>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: center;">
+                        <input type="checkbox" id="rememberMe" style="width: auto; margin-right: 8px;">
+                        <label for="rememberMe" style="margin-bottom: 0;">Remember me</label>
+                    </div>
+                    <div style="text-align: right; margin-bottom: 1.5rem;">
+                        <a href="#" style="color: var(--accent-color); text-decoration: none;">Forgot password?</a>
+                    </div>
+                    <button type="submit" class="btn-submit">Sign In</button>
+                    <div class="form-footer">
+                        <p>Don't have an account? <a href="#" id="switchToSignUp">Sign up</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div class="modal-overlay" id="signUpModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Create Account</h3>
+                <button class="modal-close" id="closeSignUpModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="signupEmail">Email</label>
+                        <input type="email" id="signupEmail" class="form-control" placeholder="example@gmail.com" required>
+                        <div class="error-message" id="signupEmailError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPhone">Phone Number</label>
+                        <input type="tel" id="signupPhone" class="form-control" placeholder="10-digit number">
+                        <div class="error-message" id="signupPhoneError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" id="signupPassword" class="form-control" placeholder="Create a strong password" required>
+                        <div class="error-message" id="signupPasswordError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signupConfirmPassword">Confirm Password</label>
+                        <input type="password" id="signupConfirmPassword" class="form-control" placeholder="Re-enter your password" required>
+                        <div class="error-message" id="signupConfirmPasswordError"></div>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: center;">
+                        <input type="checkbox" id="agreeTerms" style="width: auto; margin-right: 8px;" required>
+                        <label for="agreeTerms" style="margin-bottom: 0;">I agree to the <a href="#" style="color: var(--accent-color);">Terms & Privacy Policy</a></label>
+                    </div>
+                    <button type="submit" class="btn-submit">Create Account</button>
+                    <div class="form-footer">
+                        <p>Already have an account? <a href="#" id="switchToSignIn">Sign in</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+// Initializing Lucide icons
+document.addEventListener('DOMContentLoaded', function() {
+    lucide.createIcons();
+    
+    // Modal functionality
+    const signInModal = document.getElementById('signInModal');
+    const signUpModal = document.getElementById('signUpModal');
+    
+    // Function to open modal
+    function openModal(modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    // Function to close modal
+    function closeModal(modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    
+    // Event listeners for all sign in buttons
+    document.getElementById('signInBtn').addEventListener('click', function() {
+        openModal(signInModal);
+    });
+    
+    document.getElementById('mobileSignInBtn').addEventListener('click', function() {
+        openModal(signInModal);
+    });
+    
+    document.getElementById('heroSignInBtn').addEventListener('click', function() {
+        openModal(signInModal);
+    });
+    
+    // Event listeners for all sign up buttons
+    document.getElementById('getStartedBtn').addEventListener('click', function() {
+        openModal(signUpModal);
+    });
+    
+    document.getElementById('mobileGetStartedBtn').addEventListener('click', function() {
+        openModal(signUpModal);
+    });
+    
+    document.getElementById('ctaGetStartedBtn').addEventListener('click', function() {
+        openModal(signUpModal);
+    });
+    
+    // Close buttons
+    document.getElementById('closeSignInModal').addEventListener('click', function() {
+        closeModal(signInModal);
+    });
+    
+    document.getElementById('closeSignUpModal').addEventListener('click', function() {
+        closeModal(signUpModal);
+    });
+    
+    // Switch between forms
+    document.getElementById('switchToSignUp').addEventListener('click', function(e) {
+        e.preventDefault();
+        closeModal(signInModal);
+        openModal(signUpModal);
+    });
+    
+    document.getElementById('switchToSignIn').addEventListener('click', function(e) {
+        e.preventDefault();
+        closeModal(signUpModal);
+        openModal(signInModal);
+    });
+    
+    // Close when clicking outside modal content
+    signInModal.addEventListener('click', function(e) {
+        if (e.target === signInModal) {
+            closeModal(signInModal);
+        }
+    });
+    
+    signUpModal.addEventListener('click', function(e) {
+        if (e.target === signUpModal) {
+            closeModal(signUpModal);
+        }
+    });
+    
+    // Form validation for sign up
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        signupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const email = document.getElementById('signupEmail').value;
+            const phone = document.getElementById('signupPhone').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            
+            // Reset error messages
+            document.getElementById('signupEmailError').style.display = 'none';
+            document.getElementById('signupPhoneError').style.display = 'none';
+            document.getElementById('signupPasswordError').style.display = 'none';
+            document.getElementById('signupConfirmPasswordError').style.display = 'none';
+            
+            let isValid = true;
+            
+            // Email validation
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|rguktong\.ac\.in)$/;
+            if (!emailRegex.test(email)) {
+                document.getElementById('signupEmailError').textContent = 'Please enter a valid email from gmail.com or rguktong.ac.in.';
+                document.getElementById('signupEmailError').style.display = 'block';
+                isValid = false;
+            }
+            
+            // Phone validation
+            const phoneRegex = /^[6-9]\d{9}$/;
+            if (phone && !phoneRegex.test(phone)) {
+                document.getElementById('signupPhoneError').textContent = 'Please enter a valid 10-digit phone number starting with 6, 7, 8, or 9.';
+                document.getElementById('signupPhoneError').style.display = 'block';
+                isValid = false;
+            }
+            
+            // Password validation
+            if (password.length < 8) {
+                document.getElementById('signupPasswordError').textContent = 'Password must be at least 8 characters long.';
+                document.getElementById('signupPasswordError').style.display = 'block';
+                isValid = false;
+            }
+            
+            // Confirm password
+            if (password !== confirmPassword) {
+                document.getElementById('signupConfirmPasswordError').textContent = 'Passwords do not match.';
+                document.getElementById('signupConfirmPasswordError').style.display = 'block';
+                isValid = false;
+            }
+            
+            // Terms checkbox
+            if (!document.getElementById('agreeTerms').checked) {
+                alert('You must agree to the Terms & Privacy Policy.');
+                isValid = false;
+            }
+            
+            // If form is valid, proceed
+            if (isValid) {
+                alert('Account created successfully! Redirecting to profile setup...');
+                window.location.href = 'profile-1.html';
+            }
+        });
+    }
+    
+    // Form validation for sign in
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Reset error messages
+            document.getElementById('loginEmailError').style.display = 'none';
+            document.getElementById('loginPasswordError').style.display = 'none';
+            
+            let isValid = true;
+            
+            // Basic email validation
+            if (!email) {
+                document.getElementById('loginEmailError').textContent = 'Email is required.';
+                document.getElementById('loginEmailError').style.display = 'block';
+                isValid = false;
+            }
+            
+            // Basic password validation
+            if (!password) {
+                document.getElementById('loginPasswordError').textContent = 'Password is required.';
+                document.getElementById('loginPasswordError').style.display = 'block';
+                isValid = false;
+            }
+            
+            // If form is valid, proceed
+            if (isValid) {
+                alert('Sign in successful! Redirecting to dashboard...');
+                // window.location.href = 'dashboard.html';
+            }
+        });
+    }
+});
+
+// Mobile menu functionality
+function initializeMobileMenu() {
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    if (mobileMenuBtn && mobileMenu) {
+        mobileMenuBtn.addEventListener('click', function() {
+            mobileMenu.classList.toggle('active');
+        });
+    }
+}
+
+// Smooth scrolling for navigation links
+function initializeSmoothScrolling() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+}
+
+// Newsletter subscription
+function initializeNewsletter() {
+    const newsletterForm = document.querySelector('.newsletter-form');
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const emailInput = document.getElementById('emailInput');
+            if (emailInput.value) {
+                alert('Thank you for subscribing to our newsletter!');
+                emailInput.value = '';
+            }
+        });
+    }
+}
+
+// Scroll animations
+function initializeScrollAnimations() {
+    const observerOptions = {
+        threshold: 0.1
+    };
+    
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate');
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.feature-card, .step-card, .skill-card').forEach(card => {
+        observer.observe(card);
+    });
+}
+
+// Header scroll behavior
+function initializeHeaderScroll() {
+    const header = document.querySelector('.header');
+    if (header) {
+        let lastScroll = 0;
+        
+        window.addEventListener('scroll', function() {
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll <= 0) {
+                header.classList.remove('scroll-up');
+                return;
+            }
+            
+            if (currentScroll > lastScroll && !header.classList.contains('scroll-down')) {
+                header.classList.remove('scroll-up');
+                header.classList.add('scroll-down');
+            } else if (currentScroll < lastScroll && header.classList.contains('scroll-down')) {
+                header.classList.remove('scroll-down');
+                header.classList.add('scroll-up');
+            }
+            
+            lastScroll = currentScroll;
+        });
+    }
+}
+</script>
+</body>
+</html>
