@@ -404,6 +404,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 // Success: store the JWT and redirect
                 localStorage.setItem('token', data.token);
+                localStorage.setItem("userId", data.user._id);     // 👈 now calls will work
+                localStorage.setItem("username", data.user.username);
+                localStorage.setItem("fullName", data.user.fullName);
                 alert('Login successful! Redirecting to homepage...');
                 window.location.href = 'homepage.html'; // You'll need to create this file
             } else {

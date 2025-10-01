@@ -563,7 +563,7 @@ async function addSkill(kind) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                "x-auth-token": token
             },
             body: JSON.stringify(userData.profile) // ✅ Send correct shape
         });
@@ -599,7 +599,7 @@ async function updateSkillsDisplay() {
         const res = await fetch('/api/users/me', {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                "x-auth-token": token,
                 'Content-Type': 'application/json'
             }
         });
@@ -784,7 +784,7 @@ document.querySelectorAll('.category-card').forEach(card => {
 
       const response = await fetch(`http://localhost:5000/api/profile/category/${encodeURIComponent(category)}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+            "x-auth-token": token,
           'Content-Type': 'application/json'
         }
       });
@@ -1108,7 +1108,7 @@ async function loadConnections() {
 
 
 // Handle View Profile button click
-/*document.addEventListener("click", async (e) => {
+document.addEventListener("click", async (e) => {
   if (e.target.classList.contains("view-profile-btn")) {
     const userId = e.target.dataset.userid;
     const context = e.target.dataset.context; // "connections" or "category"
@@ -1120,24 +1120,6 @@ async function loadConnections() {
     }
 
     try {
-      // Show a temporary loading spinner in modal
-      const modalEl = document.getElementById("profileModal");
-      const modalBody = document.getElementById("profileModalBody");
-      modalBody.innerHTML = `<div class="text-center p-3">Loading...</div>`;
-
-      // Always dispose old modal instance safely
-      let existing = bootstrap.Modal.getInstance(modalEl);
-      if (existing) {
-        existing.dispose();
-      }
-
-      // Create fresh modal instance (not conflicting with focus state)
-      const modal = new bootstrap.Modal(modalEl);
-
-      // Open the modal immediately (with spinner)
-      modal.show();
-
-      // ✅ Fetch user profile
       const res = await fetch(`http://localhost:5000/api/users/${userId}`, {
         headers: { "x-auth-token": token }
       });
@@ -1155,6 +1137,7 @@ async function loadConnections() {
       `;
 
       if (context === "connections") {
+        // ✅ Full profile
         content += `
           <p><strong>Email:</strong> ${user.email || "Not provided"}</p>
           <p><strong>Phone:</strong> ${profile.phoneNumber || "Not provided"}</p>
@@ -1166,10 +1149,11 @@ async function loadConnections() {
           <p><strong>Skills to Learn:</strong> ${
             profile.skillsToLearn?.map(s => `${s.skillName}`).join(", ") || "None"
           }</p>
-          <p><strong>Availability days:</strong> ${profile.availability?.days || "Not specified"}</p>
-          <p><strong>Availability time:</strong> ${profile.availability?.time || "Not specified"} (${profile.availability?.timezone || "Not specified"})</p>
+          <p><strong>Availability days:</strong> ${user.profile?.availability?.days || "Not specified"}<br></p>
+          <p><strong>Availability time:</strong> ${user.profile?.availability?.time || "Not specified"} (${user.profile?.availability?.timezone || "Not specified"})<br></p>
         `;
       } else if (context === "category") {
+        // ✅ Limited profile
         content += `
           <p><strong>Bio:</strong> ${profile.bio || "No bio"}</p>
           <p><strong>Skills Offered:</strong> ${
@@ -1183,21 +1167,14 @@ async function loadConnections() {
         `;
       }
 
-      // ✅ Replace loading spinner with actual content
-      modalBody.innerHTML = content;
-
+      document.getElementById("profileModalBody").innerHTML = content;
+      const modal = new bootstrap.Modal(document.getElementById("profileModal"));
+      modal.show();
     } catch (err) {
       console.error("Error loading profile:", err);
-      document.getElementById("profileModalBody").innerHTML = `<p class="text-danger">Failed to load profile.</p>`;
     }
   }
-});*/
-
-
-
-
-
-
+});
 
 
 
@@ -1403,6 +1380,167 @@ async function loadChatSidebar() {
 
 // Open a chat with selected user
 // Open a chat with selected user
+// async function openChat(userId, profile) {
+//   activeChatUserId = userId;
+
+//   // Highlight selected
+//   document.querySelectorAll(".chat-item").forEach(el => el.classList.remove("active"));
+//   const chatItem = document.getElementById(`chat-${userId}`);
+//   if (chatItem) chatItem.classList.add("active");
+
+//   // Update header
+// document.getElementById("chatHeader").innerHTML = `
+//   <div class="d-flex align-items-center justify-content-between w-100">
+//     <div class="d-flex align-items-center">
+//       <img src="./images/user.png" class="rounded-circle me-2" width="45" height="45" />
+//       <div>
+//         <h5 class="mb-0">${profile?.fullName || "Chat"}</h5>
+//         <small class="text-muted">@${profile?.username || ""}</small>
+//       </div>
+//     </div>
+//     <div>
+//       <button class="btn btn-sm btn-outline-primary me-2" id="startVideoCallBtn">📹</button>
+//       <button class="btn btn-sm btn-outline-success" id="startScreenShareBtn">🖥️</button>
+//     </div>
+//   </div>
+// `;
+
+
+//   // ✅ Mark messages as read
+//   const token = localStorage.getItem("token");
+//   await fetch(`http://localhost:5000/api/messages/${userId}/read`, {
+//     method: "PUT",
+//     headers: { "x-auth-token": token }
+//   });
+
+//   // Reload messages
+//   await loadMessages(userId);
+
+//   // ✅ Refresh sidebar so unread badge disappears
+//   await loadChatSidebar();
+// }
+
+// 🔑 Globals
+// 🔑 Globals
+// const socket = io("http://localhost:5000"); // adjust if needed
+// --- GLOBAL SETUP --- //
+//const socket = io("http://localhost:5000"); // adjust if needed
+let peerConnection;
+let localStream;
+let remoteStream;
+let currentRoomId;
+let screenSharing = false;
+let savedCameraTrack;
+//let activeChatUserId;
+
+
+
+// ✅ Join personal room after login
+const currentUserId = localStorage.getItem("userId");
+if (currentUserId) {
+  socket.emit("join", currentUserId);
+}
+
+// --- GLOBAL CALL EVENT LISTENERS --- //
+
+// Incoming call notification
+socket.on("incoming-call", async ({ from, roomId }) => {
+  const accept = confirm(`📞 Incoming call from user ${from}. Accept?`);
+
+  if (accept) {
+    socket.emit("call-accepted", { from: currentUserId, to: from, roomId });
+    // Open the chat with caller
+    await openChat(from, {}); 
+    // Start call as callee
+    await startCall(false, roomId);
+  } else {
+    socket.emit("call-declined", { from: currentUserId, to: from });
+  }
+});
+
+// Caller: other user accepted
+socket.on("call-accepted", async ({ from, roomId }) => {
+  currentRoomId = roomId;
+  await startCall(true, roomId); // caller role
+});
+
+// Caller: other user declined
+socket.on("call-declined", ({ from }) => {
+  alert(`❌ Call declined by user ${from}`);
+});
+
+// --- CALL STARTER FUNCTION (used by both caller/callee) --- //
+async function startCall(isCaller, roomId) {
+  const callModal = document.getElementById("videoCallModal");
+  callModal.style.display = "flex";
+
+  try {
+    // Get webcam + mic
+    localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+
+    // My preview = small video
+    const smallVideo = document.getElementById("smallVideo");
+    smallVideo.srcObject = localStream;
+    smallVideo.muted = true;
+
+    // Remote goes to big video
+    remoteStream = new MediaStream();
+    const mainVideo = document.getElementById("mainVideo");
+    mainVideo.srcObject = remoteStream;
+
+  } catch (err) {
+    console.error("🚨 Camera error:", err);
+    alert("Camera not accessible: " + err.message);
+    return;
+  }
+
+  // Create RTCPeerConnection
+  peerConnection = new RTCPeerConnection();
+
+  // Add local tracks
+  localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+  // Remote tracks
+  peerConnection.ontrack = (event) => {
+    event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+  };
+
+  // ICE candidates
+  peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+      socket.emit("ice-candidate", { roomId, candidate: event.candidate });
+    }
+  };
+
+  // Signaling
+  if (isCaller) {
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    socket.emit("offer", { roomId, sdp: offer });
+  }
+}
+
+// --- SIGNALING HANDLERS (shared by both sides) --- //
+socket.on("offer", async ({ sdp }) => {
+  await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
+  const answer = await peerConnection.createAnswer();
+  await peerConnection.setLocalDescription(answer);
+  socket.emit("answer", { roomId: currentRoomId, sdp: answer });
+});
+
+socket.on("answer", async ({ sdp }) => {
+  await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
+});
+
+socket.on("ice-candidate", async ({ candidate }) => {
+  try {
+    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+  } catch (err) {
+    console.error("Error adding ICE candidate:", err);
+  }
+});
+
+// --- MAIN CHAT FUNCTION --- //
 async function openChat(userId, profile) {
   activeChatUserId = userId;
 
@@ -1411,16 +1549,82 @@ async function openChat(userId, profile) {
   const chatItem = document.getElementById(`chat-${userId}`);
   if (chatItem) chatItem.classList.add("active");
 
-  // Update header
+  // Reset call modal
+  const callModal = document.getElementById("videoCallModal");
+  if (callModal) callModal.style.display = "none";
+
+  // Clear old videos
+  const mainVideo = document.getElementById("mainVideo");
+  const smallVideo = document.getElementById("smallVideo");
+  if (mainVideo?.srcObject) { mainVideo.srcObject.getTracks().forEach(t => t.stop()); mainVideo.srcObject = null; }
+  if (smallVideo?.srcObject) { smallVideo.srcObject.getTracks().forEach(t => t.stop()); smallVideo.srcObject = null; }
+
+  // Header UI
   document.getElementById("chatHeader").innerHTML = `
-    <div class="d-flex align-items-center">
-      <img src="./images/user.png" class="rounded-circle me-2" width="45" height="45" />
+    <div class="d-flex align-items-center justify-content-between w-100">
+      <div class="d-flex align-items-center">
+        <img src="./images/user.png" class="rounded-circle me-2" width="45" height="45" />
+        <div>
+          <h5 class="mb-0">${profile?.fullName || "Chat"}</h5>
+          <small class="text-muted">@${profile?.username || ""}</small>
+        </div>
+      </div>
       <div>
-        <h5 class="mb-0">${profile?.fullName || "Chat"}</h5>
-        <small class="text-muted">@${profile?.username || ""}</small>
+        <button class="btn btn-sm btn-outline-primary" id="startVideoCallBtn">📹</button>
       </div>
     </div>
   `;
+
+  // Start call button → send invite
+  const videoCallBtn = document.getElementById("startVideoCallBtn");
+  if (videoCallBtn) {
+    videoCallBtn.onclick = () => {
+      currentRoomId = [currentUserId, activeChatUserId].sort().join("-");
+      socket.emit("call-user", { from: currentUserId, to: activeChatUserId, roomId: currentRoomId });
+    };
+  }
+
+  // End call
+  const endCallBtn = document.getElementById("endCallBtn");
+  if (endCallBtn) {
+    endCallBtn.onclick = () => {
+      if (callModal) callModal.style.display = "none";
+      if (localStream) localStream.getTracks().forEach(track => track.stop());
+      if (remoteStream) remoteStream.getTracks().forEach(track => track.stop());
+      if (peerConnection) peerConnection.close();
+      document.getElementById("mainVideo").srcObject = null;
+      document.getElementById("smallVideo").srcObject = null;
+      screenSharing = false;
+      savedCameraTrack = null;
+    };
+  }
+
+  // Screen share
+  const toggleScreenShareBtn = document.getElementById("toggleScreenShareBtn");
+  if (toggleScreenShareBtn) {
+    toggleScreenShareBtn.onclick = async () => {
+      if (!peerConnection) return;
+      const sender = peerConnection.getSenders().find(s => s.track.kind === "video");
+
+      if (!screenSharing) {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        const screenTrack = screenStream.getVideoTracks()[0];
+        savedCameraTrack = localStream.getVideoTracks()[0];
+        sender.replaceTrack(screenTrack);
+        document.getElementById("mainVideo").srcObject = screenStream;
+        screenSharing = true;
+        screenTrack.onended = () => {
+          sender.replaceTrack(savedCameraTrack);
+          document.getElementById("mainVideo").srcObject = remoteStream;
+          screenSharing = false;
+        };
+      } else {
+        sender.replaceTrack(savedCameraTrack);
+        document.getElementById("mainVideo").srcObject = remoteStream;
+        screenSharing = false;
+      }
+    };
+  }
 
   // ✅ Mark messages as read
   const token = localStorage.getItem("token");
@@ -1432,9 +1636,21 @@ async function openChat(userId, profile) {
   // Reload messages
   await loadMessages(userId);
 
-  // ✅ Refresh sidebar so unread badge disappears
+  // Refresh sidebar
   await loadChatSidebar();
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1633,6 +1849,87 @@ socket.on("receiveMessage", (message) => {
 
 
 
+// Open Video Call
+//let localStream = null;
+// let isScreenSharing = false;
+
+// // Open Video Call
+// document.addEventListener("click", async (e) => {
+//   if (e.target.id === "startVideoCallBtn") {
+//     document.getElementById("callTitle").innerText = "Video Call";
+//     document.getElementById("videoCallModal").style.display = "flex";
+    
+//     // Get webcam stream
+//     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+//     document.getElementById("mainVideo").srcObject = localStream;
+
+//     // TODO: send localStream via WebRTC/socket.io to other peer
+//   }
+// });
+
+// // Toggle Screen Share
+// document.getElementById("toggleScreenShareBtn").onclick = async () => {
+//   if (!isScreenSharing) {
+//     try {
+//       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+//       const screenTrack = screenStream.getVideoTracks()[0];
+
+//       // Replace track in localStream
+//       const sender = pc.getSenders().find(s => s.track.kind === "video");
+//       sender.replaceTrack(screenTrack);
+
+//       document.getElementById("mainVideo").srcObject = screenStream;
+
+//       // When user stops sharing
+//       screenTrack.onended = async () => {
+//         const camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+//         const camTrack = camStream.getVideoTracks()[0];
+//         sender.replaceTrack(camTrack);
+//         document.getElementById("mainVideo").srcObject = camStream;
+//         isScreenSharing = false;
+//       };
+
+//       isScreenSharing = true;
+//     } catch (err) {
+//       console.error("❌ Screen share error:", err);
+//     }
+//   } else {
+//     // Stop sharing → go back to webcam
+//     const camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+//     const camTrack = camStream.getVideoTracks()[0];
+//     const sender = pc.getSenders().find(s => s.track.kind === "video");
+//     sender.replaceTrack(camTrack);
+//     document.getElementById("mainVideo").srcObject = camStream;
+//     isScreenSharing = false;
+//   }
+// };
+
+// // Minimize Call
+// document.getElementById("minimizeCallBtn").onclick = () => {
+//   const modal = document.getElementById("videoCallModal");
+//   modal.classList.toggle("minimized");
+// };
+
+// // End Call
+// document.getElementById("endCallBtn").onclick = () => {
+//   document.getElementById("videoCallModal").style.display = "none";
+//   document.getElementById("videoCallModal").classList.remove("minimized");
+
+//   if (localStream) {
+//     localStream.getTracks().forEach(track => track.stop());
+//     localStream = null;
+//   }
+
+//   document.getElementById("mainVideo").srcObject = null;
+//   document.getElementById("smallVideo").srcObject = null;
+
+//   // TODO: also close peer connection + notify other user
+// };
+
+
+
+
+
 
 
 
@@ -1770,7 +2067,7 @@ async function saveProfile() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                  "x-auth-token": token
             },
             body: JSON.stringify(updatedProfile)
         });

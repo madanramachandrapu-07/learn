@@ -1604,3 +1604,26 @@ body {
   max-height: 400px;
   object-fit: cover;
 }
+
+
+
+#videoCallModal .modal-content {
+  background: #fff;
+  border-radius: 10px;
+  padding: 0;
+  width: 90%;
+  max-width: 900px;
+}
+
+#videoCallModal.minimized {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 250px;
+  height: 180px;
+  z-index: 1100;
+}
+
+#videoCallModal.minimized .video-container {
+  min-height: 100px;
+}

@@ -10,7 +10,7 @@ const app = express();
 const server = http.createServer(app);    // ⬅️ use http server
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5500", // adjust if frontend served elsewhere
+    origin: "http://localhost:5000", // adjust if frontend served elsewhere
     methods: ["GET", "POST"]
   }
 });
@@ -71,6 +71,44 @@ io.on("connection", (socket) => {
   // forward message to recipient
   socket.on("sendMessage", (message) => {
     io.to(message.receiver).emit("receiveMessage", message);
+  });
+
+  // socket.on("disconnect", () => {
+  //   console.log("User disconnected:", socket.id);
+  // });
+
+  // 📩 Call invitation
+  socket.on("call-user", ({ from, to, roomId }) => {
+    console.log(`📞 Call from ${from} to ${to} in room ${roomId}`);
+    io.to(to).emit("incoming-call", { from, roomId });
+  });
+
+  // ✅ Callee accepted
+  socket.on("call-accepted", ({ from, to, roomId }) => {
+    io.to(to).emit("call-accepted", { from, roomId });
+  });
+
+  // ❌ Callee declined
+  socket.on("call-declined", ({ from, to }) => {
+    io.to(to).emit("call-declined", { from });
+  });
+
+
+  socket.on("join-room", ({ roomId, userId }) => {
+    socket.join(roomId);
+    socket.to(roomId).emit("user-joined", userId);
+  });
+
+  socket.on("offer", ({ roomId, sdp }) => {
+    socket.to(roomId).emit("offer", { sdp });
+  });
+
+  socket.on("answer", ({ roomId, sdp }) => {
+    socket.to(roomId).emit("answer", { sdp });
+  });
+
+  socket.on("ice-candidate", ({ roomId, candidate }) => {
+    socket.to(roomId).emit("ice-candidate", { candidate });
   });
 
   socket.on("disconnect", () => {

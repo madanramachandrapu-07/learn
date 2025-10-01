@@ -502,7 +502,10 @@ async function fetchAndPopulateProfile() {
   try {
     const response = await fetch('http://localhost:5000/api/profile', {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json', 'x-auth-token': token }
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-auth-token': token 
+      }
     });
     const user = await response.json();
     if (response.ok) {

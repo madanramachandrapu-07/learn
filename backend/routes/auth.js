@@ -83,7 +83,14 @@ router.post('/signin', async (req, res) => {
       { expiresIn: '1h' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token, msg: 'Login successful. Redirect to homepage.' });
+        res.json({ token,
+          user: {
+            _id: user._id,
+            fullName: user.fullName,
+            username: user.username,
+            email: user.email
+          },
+             msg: 'Login successful. Redirect to homepage.' });
       }
     );
 
