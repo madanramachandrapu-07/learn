@@ -1615,15 +1615,118 @@ body {
   max-width: 900px;
 }
 
-#videoCallModal.minimized {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 250px;
-  height: 180px;
-  z-index: 1100;
+
+/* Fullscreen mode */
+/* ====== Fullscreen Mode ====== */
+#videoCallModal.fullscreen {
+  position: fixed !important;
+  inset: 0; /* top:0; left:0; bottom:0; right:0; shorthand */
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  border-radius: 0;
+  margin: 0;
 }
 
-#videoCallModal.minimized .video-container {
-  min-height: 100px;
+#videoCallModal.fullscreen .d-flex {
+  background: rgba(0, 0, 0, 0.3);
 }
+
+#videoCallModal.fullscreen .modal-content {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Make video container take full available space */
+#videoCallModal.fullscreen .video-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Maintain aspect ratio and center video perfectly */
+#videoCallModal.fullscreen video {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain !important;
+  background: #000;
+}
+
+/* Floating small video in fullscreen */
+#videoCallModal.fullscreen #smallVideo {
+  position: absolute;
+  width: 200px;
+  height: 150px;
+  bottom: 20px;
+  right: 20px;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  background: #000;
+  z-index: 10;
+}
+
+
+/* Minimized pop-up window */
+#videoCallModal.minimized {
+  position: fixed !important;
+  bottom: 15px;
+  right: 15px;
+  width: 300px !important;
+  height: 200px !important;
+  z-index: 9999;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+#videoCallModal.minimized .modal-content {
+  padding: 0;
+}
+
+#videoCallModal.minimized video {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* ---- Ensure fullscreen truly fills viewport ---- */
+#videoCallModal.fullscreen .modal-content {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  background: #000 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+
+#videoCallModal.fullscreen .video-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+

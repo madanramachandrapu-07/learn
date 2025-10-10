@@ -8,9 +8,15 @@ require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);    // ⬅️ use http server
+// const io = new Server(server, {
+//   cors: {
+//     origin: "http://localhost:5000", // adjust if frontend served elsewhere
+//     methods: ["GET", "POST"]
+//   }
+// });
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5000", // adjust if frontend served elsewhere
+    origin: ["http://localhost:5000", "https://your-ngrok-url.ngrok-free.app"],
     methods: ["GET", "POST"]
   }
 });
@@ -18,7 +24,14 @@ const io = new Server(server, {
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+// Be sure to replace this with your actual ngrok URL
+const allowedOrigins = ["http://localhost:5000", "https://lahoma-severable-marguerite.ngrok-free.app"];
+
+app.use(cors({
+    origin: allowedOrigins,
+    // 👇 Add this line to allow your custom token header
+    allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"] 
+}));
 app.use(express.static('../frontend')); 
 
 // Serve uploads folder for files (images, docs, videos, etc.)
@@ -96,19 +109,23 @@ io.on("connection", (socket) => {
 
   socket.on("join-room", ({ roomId, userId }) => {
     socket.join(roomId);
+    console.log("User", userId, "joined room", roomId);
     socket.to(roomId).emit("user-joined", userId);
   });
 
   socket.on("offer", ({ roomId, sdp }) => {
-    socket.to(roomId).emit("offer", { sdp });
+    console.log(`📡 Offer received for room ${roomId}`);
+    socket.to(roomId).emit("offer", {roomId, sdp });
   });
 
   socket.on("answer", ({ roomId, sdp }) => {
-    socket.to(roomId).emit("answer", { sdp });
+    console.log(`✅ Answer received for room ${roomId}`);
+    socket.to(roomId).emit("answer", {roomId, sdp });
   });
 
   socket.on("ice-candidate", ({ roomId, candidate }) => {
-    socket.to(roomId).emit("ice-candidate", { candidate });
+    console.log(`🧊 ICE candidate relayed for room ${roomId}`);
+    socket.to(roomId).emit("ice-candidate", {roomId, candidate });
   });
 
   socket.on("disconnect", () => {
@@ -116,5 +133,11 @@ io.on("connection", (socket) => {
   });
 });
 
+
+// Serve the main HTML file on the root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/newindex.html'));
+});
+
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));
+server.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server is running on port ${PORT}`));

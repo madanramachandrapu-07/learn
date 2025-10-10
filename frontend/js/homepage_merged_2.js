@@ -780,9 +780,9 @@ document.querySelectorAll('.category-card').forEach(card => {
 
     try {
       const token = localStorage.getItem('token');
-      console.log("📌 Sending request to:", `http://localhost:5000/api/profile/category/${encodeURIComponent(category)}`); // DEBUG
+      console.log("📌 Sending request to:", `api/profile/category/${encodeURIComponent(category)}`); // DEBUG
 
-      const response = await fetch(`http://localhost:5000/api/profile/category/${encodeURIComponent(category)}`, {
+      const response = await fetch(`api/profile/category/${encodeURIComponent(category)}`, {
         headers: {
             "x-auth-token": token,
           'Content-Type': 'application/json'
@@ -863,7 +863,7 @@ document.addEventListener("click", async (e) => {
     if (!token) return alert("⚠️ Please log in first.");
 
     try {
-      const res = await fetch("http://localhost:5000/api/requests/send", {
+      const res = await fetch("api/requests/send", {
         method: "POST",
         headers: {
           "x-auth-token": token,
@@ -893,7 +893,7 @@ async function loadRequests() {
 
   try {
     // Received Requests
-    const resReceived = await fetch("http://localhost:5000/api/requests/received", {
+    const resReceived = await fetch("api/requests/received", {
       headers: { "x-auth-token": token }
     });
     const received = await resReceived.json();
@@ -944,7 +944,7 @@ async function loadRequests() {
     }
 
     //Sent Requests
-    const resSent = await fetch("http://localhost:5000/api/requests/sent", {
+    const resSent = await fetch("api/requests/sent", {
       headers: { "x-auth-token": token }
     });
     const sent = await resSent.json();
@@ -987,7 +987,7 @@ document.addEventListener("click", async (e) => {
 
   if (e.target.classList.contains("accept-btn")) {
     const id = e.target.getAttribute("data-id");
-    await fetch(`http://localhost:5000/api/requests/${id}/accept`, {
+    await fetch(`api/requests/${id}/accept`, {
       method: "PATCH",
       headers: { "x-auth-token":token }
     });
@@ -997,7 +997,7 @@ document.addEventListener("click", async (e) => {
   if (e.target.classList.contains("reject-btn")) {
     console.log("Reject clicked");
     const id = e.target.getAttribute("data-id");
-    await fetch(`http://localhost:5000/api/requests/${id}/reject`, {
+    await fetch(`api/requests/${id}/reject`, {
       method: "PATCH",
       headers: { "x-auth-token":token }
     });
@@ -1006,7 +1006,7 @@ document.addEventListener("click", async (e) => {
 
   if (e.target.classList.contains("cancel-btn")) {
     const id = e.target.getAttribute("data-id");
-    await fetch(`http://localhost:5000/api/requests/${id}/cancel`, {
+    await fetch(`api/requests/${id}/cancel`, {
       method: "PATCH",
       headers: { "x-auth-token":token }
     });
@@ -1037,7 +1037,7 @@ async function loadConnections() {
   if (!token) return;
 
   try {
-    const res = await fetch("http://localhost:5000/api/connections", {
+    const res = await fetch("api/connections", {
       headers: { "x-auth-token": token }
     });
     const data = await res.json();
@@ -1093,7 +1093,7 @@ async function loadConnections() {
             <div class="connection-actions mt-2">
               <button class="btn btn-sm btn-primary view-profile-btn me-2" data-context="connections" data-userid="${other._id}">View Profile</button>
               <button class="btn btn-sm btn-success message-btn" data-id="${other._id}">Message</button>
-              <button class="btn btn-sm btn-warning live-btn" data-id="${other._id}">Live Session</button>
+              <button class="btn btn-sm btn-warning live-btn" id="startVideoCallBtn" data-id="${other._id}">Mark As Complete</button>
             </div>
           </div>
         </div>
@@ -1120,7 +1120,7 @@ document.addEventListener("click", async (e) => {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${userId}`, {
+      const res = await fetch(`api/users/${userId}`, {
         headers: { "x-auth-token": token }
       });
       const user = await res.json();
@@ -1187,7 +1187,7 @@ async function loadConversations() {
   const token = localStorage.getItem("token");
   if (!token) return;
 
-  const res = await fetch("http://localhost:5000/api/messages", {
+  const res = await fetch("api/messages", {
     headers: { "x-auth-token": token }
   });
   const conversations = await res.json();
@@ -1213,7 +1213,7 @@ async function openChat(userId) {
   const token = localStorage.getItem("token");
 
   // Load user info
-  const resUser = await fetch("http://localhost:5000/api/users/" + userId, {
+  const resUser = await fetch("api/users/" + userId, {
     headers: { "x-auth-token": token }
   });
   const other = await resUser.json();
@@ -1223,7 +1223,7 @@ async function openChat(userId) {
     `<h5>${profile.fullName || "User"}</h5>`;
 
   // Load messages
-  const res = await fetch("http://localhost:5000/api/messages/" + userId, {
+  const res = await fetch("api/messages/" + userId, {
     headers: { "x-auth-token": token }
   });
   const messages = await res.json();
@@ -1246,7 +1246,7 @@ async function openChat(userId) {
     const text = document.getElementById("chatInput").value;
     if (!text) return;
 
-    await fetch("http://localhost:5000/api/messages/" + userId, {
+    await fetch("api/messages/" + userId, {
       method: "POST",
       headers: {
         "x-auth-token": token,
@@ -1291,7 +1291,7 @@ function initMessages() {
 }
 
 
-const socket = io("http://localhost:5000");
+const socket = io();
 
 // ✅ Join with logged-in userId
 const token = localStorage.getItem("token");
@@ -1313,7 +1313,7 @@ async function loadChatSidebar() {
   if (!token) return;
 
   try {
-    const res = await fetch("http://localhost:5000/api/messages", {
+    const res = await fetch("api/messages", {
       headers: { "x-auth-token": token }
     });
     const conversations = await res.json();
@@ -1423,143 +1423,350 @@ async function loadChatSidebar() {
 // 🔑 Globals
 // 🔑 Globals
 // const socket = io("http://localhost:5000"); // adjust if needed
-// --- GLOBAL SETUP --- //
-//const socket = io("http://localhost:5000"); // adjust if needed
-let peerConnection;
-let localStream;
-let remoteStream;
-let currentRoomId;
+
+// ========================= //
+// 🌐 WebRTC + Video Call JS //
+// ========================= //
+
+// --- ICE + TURN servers ---
+// ---------- WebRTC + Call (fixed + debug) ----------
+
+// STUN / TURN config (yours)
+const servers = {
+  iceServers: [
+    { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] },
+    { urls: "turn:relay.metered.ca:80", username: "openai", credential: "openai123" },
+    { urls: "turn:relay.metered.ca:443", username: "openai", credential: "openai123" }
+  ]
+};
+
+// reuse existing global socket if present, otherwise create one that connects to same origin
+// if (!window.socket) window.socket = io(); 
+// const socket = window.socket;
+
+// ---------- Globals ----------
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+let currentRoomId = null;
 let screenSharing = false;
-let savedCameraTrack;
-//let activeChatUserId;
+let savedCameraTrack = null;
 
+// buffer ICE candidates keyed by roomId until remoteDescription is set
+const iceBuffer = {}; // { [roomId]: [candidate, ...] }
 
-
-// ✅ Join personal room after login
+// user id from localStorage (set at signin)
 const currentUserId = localStorage.getItem("userId");
-if (currentUserId) {
-  socket.emit("join", currentUserId);
-}
+if (!currentUserId) console.warn("⚠️ No userId in localStorage — calls will fail unless userId is saved at signin.");
 
-// --- GLOBAL CALL EVENT LISTENERS --- //
-
-// Incoming call notification
-socket.on("incoming-call", async ({ from, roomId }) => {
-  const accept = confirm(`📞 Incoming call from user ${from}. Accept?`);
-
-  if (accept) {
-    socket.emit("call-accepted", { from: currentUserId, to: from, roomId });
-    // Open the chat with caller
-    await openChat(from, {}); 
-    // Start call as callee
-    await startCall(false, roomId);
-  } else {
-    socket.emit("call-declined", { from: currentUserId, to: from });
+// notify server what user this socket belongs to (do this after socket connects)
+socket.on("connect", () => {
+  console.log("🔌 socket connected:", socket.id);
+  if (currentUserId) {
+    socket.emit("join", currentUserId);
+    console.log("🟢 joined personal socket room for user:", currentUserId);
   }
 });
 
-// Caller: other user accepted
-socket.on("call-accepted", async ({ from, roomId }) => {
-  currentRoomId = roomId;
-  await startCall(true, roomId); // caller role
-});
+// ---------- Helper: create and wire RTCPeerConnection ----------
+function createPeerConnection(roomId) {
+  console.log("🧩 Creating RTCPeerConnection for room:", roomId);
+  peerConnection = new RTCPeerConnection(servers);
 
-// Caller: other user declined
-socket.on("call-declined", ({ from }) => {
-  alert(`❌ Call declined by user ${from}`);
-});
+  // ensure we have a remoteStream container
+  remoteStream = new MediaStream();
+  const mainVideo = document.getElementById("mainVideo");
+  if (mainVideo) mainVideo.srcObject = remoteStream;
 
-// --- CALL STARTER FUNCTION (used by both caller/callee) --- //
-async function startCall(isCaller, roomId) {
-  const callModal = document.getElementById("videoCallModal");
-  callModal.style.display = "flex";
-
-  try {
-    // Get webcam + mic
-    localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-
-    // My preview = small video
-    const smallVideo = document.getElementById("smallVideo");
-    smallVideo.srcObject = localStream;
-    smallVideo.muted = true;
-
-    // Remote goes to big video
-    remoteStream = new MediaStream();
-    const mainVideo = document.getElementById("mainVideo");
-    mainVideo.srcObject = remoteStream;
-
-  } catch (err) {
-    console.error("🚨 Camera error:", err);
-    alert("Camera not accessible: " + err.message);
-    return;
-  }
-
-  // Create RTCPeerConnection
-  peerConnection = new RTCPeerConnection();
-
-  // Add local tracks
-  localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-  // Remote tracks
+  // when we receive remote tracks, attach to remoteStream
   peerConnection.ontrack = (event) => {
-    event.streams[0].getTracks().forEach(track => remoteStream.addTrack(track));
+    console.log("🎥 Remote track event:", event.streams);
+
+    if (event.streams && event.streams[0]) {
+      // merge all incoming tracks
+      event.streams[0].getTracks().forEach(track => {
+        console.log("➕ adding remote track:", track.kind, track.id);
+        remoteStream.addTrack(track);
+      });
+
+      const mainVideo = document.getElementById("mainVideo");
+      if (mainVideo) {
+        mainVideo.srcObject = remoteStream;
+        mainVideo.autoplay = true;
+        mainVideo.playsInline = true;
+        mainVideo.muted = false; // ✅ allow sound
+        mainVideo.volume = 1.0;  // ✅ ensure full volume
+
+        mainVideo.onloadedmetadata = () => {
+          mainVideo.play()
+            .then(() => console.log("▶️ Remote video/audio playing"))
+            .catch(err => console.warn("🔇 Autoplay blocked:", err));
+        };
+      }
+
+      console.log("✅ Remote stream attached to main video");
+    }
   };
 
-  // ICE candidates
+
+  // ICE -> send to server with roomId
   peerConnection.onicecandidate = (event) => {
     if (event.candidate) {
+      console.log("🧊 Sending ICE candidate for room:", roomId);
       socket.emit("ice-candidate", { roomId, candidate: event.candidate });
     }
   };
 
-  // Signaling
-  if (isCaller) {
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-    socket.emit("offer", { roomId, sdp: offer });
+  peerConnection.onconnectionstatechange = () => {
+    console.log("🔗 PeerConnection state:", peerConnection.connectionState);
+  };
+
+  // prepare buffer for this room if not exists
+  if (!iceBuffer[roomId]) iceBuffer[roomId] = [];
+
+  return peerConnection;
+}
+
+// ---------- Helper: add ICE candidate or buffer ----------
+async function addIceCandidateOrBuffer(candidate, roomId) {
+  if (!peerConnection) {
+    console.warn("⚠️ No peerConnection yet — buffering ICE candidate for room:", roomId);
+    if (!iceBuffer[roomId]) iceBuffer[roomId] = [];
+    iceBuffer[roomId].push(candidate);
+    return;
+  }
+  // if remoteDescription not set yet, buffer
+  const remoteDesc = peerConnection.remoteDescription;
+  if (!remoteDesc || !remoteDesc.type) {
+    console.log("⏳ Remote description not set yet — buffering ICE candidate for room:", roomId);
+    if (!iceBuffer[roomId]) iceBuffer[roomId] = [];
+    iceBuffer[roomId].push(candidate);
+    return;
+  }
+
+  try {
+    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    console.log("✅ ICE candidate added successfully");
+  } catch (err) {
+    console.error("❌ Error adding ICE candidate:", err);
   }
 }
 
-// --- SIGNALING HANDLERS (shared by both sides) --- //
-socket.on("offer", async ({ sdp }) => {
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
-  const answer = await peerConnection.createAnswer();
-  await peerConnection.setLocalDescription(answer);
-  socket.emit("answer", { roomId: currentRoomId, sdp: answer });
-});
+// ---------- Helper: flush buffered ICE candidates for a room ----------
+async function flushIceBuffer(roomId) {
+  const buf = iceBuffer[roomId] || [];
+  if (!buf.length) return;
+  console.log(`🧊 Flushing ${buf.length} buffered ICE candidate(s) for room: ${roomId}`);
+  while (buf.length) {
+    const cand = buf.shift();
+    try {
+      await peerConnection.addIceCandidate(new RTCIceCandidate(cand));
+      console.log("✅ Buffered ICE candidate added");
+    } catch (err) {
+      console.error("❌ Error adding buffered ICE candidate:", err);
+    }
+  }
+}
 
-socket.on("answer", async ({ sdp }) => {
-  await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
-});
+// ---------- GLOBAL SOCKET LISTENERS (always active) ----------
 
-socket.on("ice-candidate", async ({ candidate }) => {
-  try {
-    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-  } catch (err) {
-    console.error("Error adding ICE candidate:", err);
+// Incoming call invitation -> pop confirm
+socket.on("incoming-call", async ({ from, roomId }) => {
+  console.log("📲 Incoming call from:", from, "room:", roomId);
+  const accept = confirm(`📞 Incoming call from user ${from}. Accept?`);
+  if (accept) {
+    console.log("✅ Accepting call from", from);
+    // Tell caller we accepted (server will relay to caller)
+    socket.emit("call-accepted", { from: currentUserId, to: from, roomId });
+    // Open UI for chat/call and start callee flow
+    await openChat(from, {});            // open chat UI
+    await startCall(false /*isCaller*/, roomId); // start as callee
+  } else {
+    console.log("❌ Declining call from", from);
+    socket.emit("call-declined", { from: currentUserId, to: from });
   }
 });
 
-// --- MAIN CHAT FUNCTION --- //
+// Caller side: callee accepted -> start caller's call flow
+socket.on("call-accepted", async ({ from, roomId }) => {
+  console.log("✅ User", from, "accepted call in room:", roomId);
+  currentRoomId = roomId;
+  await startCall(true /*isCaller*/, roomId);
+});
+
+// Caller side: callee declined
+socket.on("call-declined", ({ from }) => {
+  console.log("🚫 Call declined by", from);
+  alert(`❌ Call declined by user ${from}`);
+});
+
+// Signaling: offer (callee receives)
+socket.on("offer", async ({ sdp, roomId }) => {
+  console.log("📩 Received offer for room:", roomId);
+  try {
+    currentRoomId = roomId;
+    if (!peerConnection) createPeerConnection(roomId);
+
+    // set remote description (offer)
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
+    console.log("✅ Remote description set (offer)");
+
+    // create & send answer
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+    console.log("📤 Sending answer (with roomId):", roomId);
+    socket.emit("answer", { roomId, sdp: answer });
+
+    // flush any buffered ICE candidates for this room
+    await flushIceBuffer(roomId);
+  } catch (err) {
+    console.error("❌ Error handling incoming offer:", err);
+  }
+});
+
+// Signaling: answer (caller receives)
+socket.on("answer", async ({ sdp, roomId }) => {
+  console.log("📩 Received answer for room:", roomId);
+  try {
+    // set remote description (answer)
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
+    console.log("✅ Remote description set (answer)");
+
+    // flush ICE buffer for this room
+    await flushIceBuffer(roomId);
+  } catch (err) {
+    console.error("❌ Error handling answer:", err);
+  }
+});
+
+// Signaling: ICE candidate relay
+socket.on("ice-candidate", async ({ candidate, roomId }) => {
+  console.log("📩 Received ICE candidate for room:", roomId);
+  try {
+    await addIceCandidateOrBuffer(candidate, roomId);
+  } catch (err) {
+    console.error("❌ Error adding ICE candidate:", err);
+  }
+});
+
+// ---------- START CALL (used for both caller & callee) ----------
+// isCaller: true = the caller (will create offer after other joins)
+// roomId: the shared stable room id
+async function startCall(isCaller, roomId) {
+  console.log("🎬 Starting call as", isCaller ? "CALLER" : "CALLEE", "room:", roomId);
+  currentRoomId = roomId;
+
+  // open modal/UI
+  const callModal = document.getElementById("videoCallModal");
+  if (callModal) callModal.style.display = "flex";
+
+  // get local media
+  try {
+    console.log("🎥 Requesting webcam + mic...");
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    console.log("✅ Got media stream:", localStream);
+    console.log("🎤 Local audio track:", localStream.getAudioTracks()[0]);
+
+
+    // my preview -> small video
+    const smallVideo = document.getElementById("smallVideo");
+    if (smallVideo) {
+      smallVideo.srcObject = localStream;
+      smallVideo.muted = true;
+      try { await smallVideo.play(); } catch(e) { /* autoplay warnings */ }
+    }
+  } catch (err) {
+    console.error("🚨 getUserMedia error:", err);
+    alert("Camera not accessible: " + err.message);
+    return;
+  }
+
+  // create peerConnection for this room if not exists
+  if (!peerConnection) createPeerConnection(roomId);
+
+  // add local tracks to peer
+  localStream.getTracks().forEach(track => {
+    peerConnection.addTrack(track, localStream);
+    console.log("🎙️ Added local track:", track.kind);
+  });
+
+  // prepare remote stream container and attach to mainVideo
+  remoteStream = new MediaStream();
+  const mainVideo = document.getElementById("mainVideo");
+  if (mainVideo) {
+    mainVideo.srcObject = remoteStream;
+    mainVideo.autoplay = true;
+    mainVideo.playsInline = true;
+  }
+
+  // Join the shared room (so offers/answers/ice relays to the correct room)
+  console.log("📡 Joining shared call room:", roomId);
+  socket.emit("join-room", { roomId, userId: currentUserId });
+
+  // If caller -> wait for the other peer to join (server will emit 'user-joined' to the room)
+  if (isCaller) {
+    // create offer when other user joins the room
+    const handleUserJoined = async (joinedUserId) => {
+      try {
+        console.log("🟢 other user joined room:", joinedUserId, " — creating offer now");
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        console.log("📤 Sending offer (with roomId):", roomId);
+        socket.emit("offer", { roomId, sdp: offer });
+      } catch (err) {
+        console.error("❌ Error creating/sending offer:", err);
+      }
+    };
+
+    // use once to avoid duplicate triggers
+    socket.once("user-joined", handleUserJoined);
+
+    // also set a fallback timeout — if user-joined not received in Xs still try to send offer
+    setTimeout(async () => {
+      if (!peerConnection.remoteDescription || !peerConnection.remoteDescription.type) {
+        console.warn("⏱ user-joined not seen yet — attempting to send offer anyway (fallback)");
+        try {
+          const offer = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offer);
+          socket.emit("offer", { roomId, sdp: offer });
+        } catch (err) {
+          console.error("❌ Fallback offer error:", err);
+        }
+      }
+    }, 2000);
+  }
+
+  // ensure we flush buffer once remote description eventually set (see offer/answer handlers)
+  console.log("✅ startCall finished setup for room:", roomId);
+}
+
+// ---------- UI Wiring in openChat (integrated) ----------
+
+/* Replace your openChat function with this integrated version (or merge changes).
+   It sets up the call button and end/toggle handlers while preserving your existing logic.
+*/
 async function openChat(userId, profile) {
   activeChatUserId = userId;
+  console.log("💬 Opening chat with user:", userId);
 
-  // Highlight selected
+  // UI highlight
   document.querySelectorAll(".chat-item").forEach(el => el.classList.remove("active"));
   const chatItem = document.getElementById(`chat-${userId}`);
   if (chatItem) chatItem.classList.add("active");
 
-  // Reset call modal
+  // Reset video modal + stop previous streams
   const callModal = document.getElementById("videoCallModal");
   if (callModal) callModal.style.display = "none";
 
-  // Clear old videos
-  const mainVideo = document.getElementById("mainVideo");
-  const smallVideo = document.getElementById("smallVideo");
-  if (mainVideo?.srcObject) { mainVideo.srcObject.getTracks().forEach(t => t.stop()); mainVideo.srcObject = null; }
-  if (smallVideo?.srcObject) { smallVideo.srcObject.getTracks().forEach(t => t.stop()); smallVideo.srcObject = null; }
+  ["mainVideo", "smallVideo"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el?.srcObject) {
+      el.srcObject.getTracks().forEach(t => t.stop());
+      el.srcObject = null;
+    }
+  });
 
-  // Header UI
+  // Header UI (existing)
   document.getElementById("chatHeader").innerHTML = `
     <div class="d-flex align-items-center justify-content-between w-100">
       <div class="d-flex align-items-center">
@@ -1575,23 +1782,32 @@ async function openChat(userId, profile) {
     </div>
   `;
 
-  // Start call button → send invite
+  // Call button → send invite
   const videoCallBtn = document.getElementById("startVideoCallBtn");
   if (videoCallBtn) {
     videoCallBtn.onclick = () => {
+      if (!currentUserId) return alert("You must be logged in (userId missing).");
       currentRoomId = [currentUserId, activeChatUserId].sort().join("-");
+      console.log("📞 Calling user:", activeChatUserId, "room:", currentRoomId);
+      // invite the remote user (server will relay to the receiver's personal room)
       socket.emit("call-user", { from: currentUserId, to: activeChatUserId, roomId: currentRoomId });
     };
   }
 
-  // End call
+  // End call handler
   const endCallBtn = document.getElementById("endCallBtn");
   if (endCallBtn) {
     endCallBtn.onclick = () => {
+      console.log("❌ Ending call...");
+      const callModal = document.getElementById("videoCallModal");
       if (callModal) callModal.style.display = "none";
-      if (localStream) localStream.getTracks().forEach(track => track.stop());
-      if (remoteStream) remoteStream.getTracks().forEach(track => track.stop());
-      if (peerConnection) peerConnection.close();
+
+      if (localStream) localStream.getTracks().forEach(t => t.stop());
+      if (remoteStream) remoteStream.getTracks().forEach(t => t.stop());
+      if (peerConnection) {
+        try { peerConnection.close(); } catch(e) {}
+        peerConnection = null;
+      }
       document.getElementById("mainVideo").srcObject = null;
       document.getElementById("smallVideo").srcObject = null;
       screenSharing = false;
@@ -1599,46 +1815,128 @@ async function openChat(userId, profile) {
     };
   }
 
-  // Screen share
+  // Toggle screen-share
   const toggleScreenShareBtn = document.getElementById("toggleScreenShareBtn");
   if (toggleScreenShareBtn) {
     toggleScreenShareBtn.onclick = async () => {
-      if (!peerConnection) return;
-      const sender = peerConnection.getSenders().find(s => s.track.kind === "video");
+      try {
+        if (!peerConnection) return console.warn("No active peerConnection");
+        const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === "video");
+        if (!sender) return console.warn("No video sender found");
 
-      if (!screenSharing) {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-        const screenTrack = screenStream.getVideoTracks()[0];
-        savedCameraTrack = localStream.getVideoTracks()[0];
-        sender.replaceTrack(screenTrack);
-        document.getElementById("mainVideo").srcObject = screenStream;
-        screenSharing = true;
-        screenTrack.onended = () => {
-          sender.replaceTrack(savedCameraTrack);
+        if (!screenSharing) {
+          console.log("🖥️ Starting screen share");
+          const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+          const screenTrack = screenStream.getVideoTracks()[0];
+          savedCameraTrack = localStream.getVideoTracks()[0];
+          await sender.replaceTrack(screenTrack);
+          // local view: show the screenshare in mainVideo
+          document.getElementById("mainVideo").srcObject = screenStream;
+          screenSharing = true;
+          screenTrack.onended = () => {
+            // restore camera
+            sender.replaceTrack(savedCameraTrack);
+            document.getElementById("mainVideo").srcObject = remoteStream;
+            screenSharing = false;
+          };
+        } else {
+          // stop sharing -> restore camera
+          await sender.replaceTrack(savedCameraTrack);
           document.getElementById("mainVideo").srcObject = remoteStream;
           screenSharing = false;
-        };
-      } else {
-        sender.replaceTrack(savedCameraTrack);
-        document.getElementById("mainVideo").srcObject = remoteStream;
-        screenSharing = false;
+        }
+      } catch (err) {
+        console.error("❌ Screen share error:", err);
       }
     };
   }
 
-  // ✅ Mark messages as read
-  const token = localStorage.getItem("token");
-  await fetch(`http://localhost:5000/api/messages/${userId}/read`, {
-    method: "PUT",
-    headers: { "x-auth-token": token }
+  // === FULLSCREEN TOGGLE ===
+  // const fullscreenBtn = document.getElementById("toggleFullscreenBtn");
+  // if (fullscreenBtn) {
+  //   fullscreenBtn.onclick = () => {
+  //     const modal = document.getElementById("videoCallModal");
+  //     if (!modal) return;
+
+  //     if (modal.classList.contains("fullscreen")) {
+  //       modal.classList.remove("fullscreen");
+  //       fullscreenBtn.innerText = "⛶"; // restore icon
+  //       console.log("⬜ Exited fullscreen mode");
+  //     } else {
+  //       modal.classList.add("fullscreen");
+  //       fullscreenBtn.innerText = "🗗"; // alternate icon
+  //       console.log("🖥️ Entered fullscreen mode");
+  //     }
+  //   };
+  // }
+  // === FULLSCREEN TOGGLE ===
+const fullscreenBtn = document.getElementById("toggleFullscreenBtn");
+if (fullscreenBtn) {
+  fullscreenBtn.onclick = () => {
+    const modal = document.getElementById("videoCallModal");
+    if (!modal) return;
+
+    if (modal.classList.contains("fullscreen")) {
+      modal.classList.remove("fullscreen");
+      fullscreenBtn.innerText = "⛶"; // exit fullscreen icon
+      console.log("⬜ Exited fullscreen mode");
+    } else {
+      modal.classList.add("fullscreen");
+      fullscreenBtn.innerText = "🗗"; // fullscreen icon
+      console.log("🖥️ Entered fullscreen mode");
+    }
+  };
+
+  // Exit fullscreen with Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const modal = document.getElementById("videoCallModal");
+      if (modal?.classList.contains("fullscreen")) {
+        modal.classList.remove("fullscreen");
+        fullscreenBtn.innerText = "⛶";
+      }
+    }
   });
+}
 
-  // Reload messages
+
+  // === MINIMIZE TOGGLE ===
+  const minimizeBtn = document.getElementById("minimizeCallBtn");
+  if (minimizeBtn) {
+    minimizeBtn.onclick = () => {
+      const modal = document.getElementById("videoCallModal");
+      if (!modal) return;
+
+      // toggle minimized class
+      if (modal.classList.contains("minimized")) {
+        modal.classList.remove("minimized");
+        minimizeBtn.innerText = "🔽";
+        console.log("🔼 Restored full window size");
+      } else {
+        modal.classList.remove("fullscreen"); // exit fullscreen if any
+        modal.classList.add("minimized");
+        minimizeBtn.innerText = "🔼";
+        console.log("🔽 Minimized video window");
+      }
+    };
+  }
+
+
+  // Mark messages as read + reload messages + refresh UI (your existing calls)
+  const token = localStorage.getItem("token");
+  try {
+    await fetch(`api/messages/${userId}/read`, { method: "PUT", headers: { "x-auth-token": token } });
+  } catch (e) { /* ignore */ }
+
   await loadMessages(userId);
-
-  // Refresh sidebar
   await loadChatSidebar();
 }
+
+// flush buffers when page unloads / close
+window.addEventListener("beforeunload", () => {
+  if (peerConnection) peerConnection.close();
+});
+
 
 
 
@@ -1675,7 +1973,7 @@ function getDateLabel(date) {
 async function loadMessages(userId) {
   const token = localStorage.getItem("token");
   try {
-    const res = await fetch(`http://localhost:5000/api/messages/${userId}`, {
+    const res = await fetch(`api/messages/${userId}`, {
       headers: { "x-auth-token": token }
     });
     const messages = await res.json();
@@ -1805,7 +2103,7 @@ document.getElementById("sendMessageBtn").addEventListener("click", async () => 
   if (file) formData.append("file", file);
 
   // Save message via API
-  const res = await fetch(`http://localhost:5000/api/messages/${activeChatUserId}`, {
+  const res = await fetch(`api/messages/${activeChatUserId}`, {
     method: "POST",
     headers: { "x-auth-token": token },
     body: formData
@@ -2199,7 +2497,7 @@ async function fetchAndPopulateProfile() {
   }
 
   try {
-    const response = await fetch('http://localhost:5000/api/profile', {
+    const response = await fetch('api/profile', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

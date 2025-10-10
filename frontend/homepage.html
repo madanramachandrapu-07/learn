@@ -940,9 +940,10 @@ document.addEventListener("DOMContentLoaded", function () {
   <div class="modal-content position-relative">
     <!-- Controls -->
     <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
-      <h5 id="callTitle">Video Call</h5>
+      <h5 id="callTitle">Live Session</h5>
       <div>
         <button class="btn btn-sm btn-warning me-2" id="minimizeCallBtn">🔽</button>
+        <button class="btn btn-sm btn-secondary me-2" id="toggleFullscreenBtn">⛶</button>
         <button class="btn btn-sm btn-primary me-2" id="toggleScreenShareBtn">🖥️</button>
         <button class="btn btn-sm btn-danger" id="endCallBtn">❌</button>
       </div>
@@ -951,7 +952,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <!-- Video container -->
     <div class="video-container position-relative mt-2" style="min-height:400px;">
       <!-- Big video (webcam OR screen) -->
-      <video id="mainVideo" autoplay muted playsinline 
+      <video id="mainVideo" autoplay playsinline 
               class="rounded border w-100"
               style="max-height:400px; object-fit:cover; background:#000;"></video>
 

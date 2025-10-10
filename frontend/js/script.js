@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             // Send a POST request to our backend login endpoint
-            const response = await fetch('http://localhost:5000/api/auth/signin', {
+            const response = await fetch('api/auth/signin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
