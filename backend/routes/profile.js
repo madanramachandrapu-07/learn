@@ -84,4 +84,34 @@ router.get('/category/:category', async (req, res) => {
 });
 
 
+
+// @route   GET /api/profile/recommended
+// @desc    Recommend users whose skills match your skillsToLearn
+// @access  Private
+router.get('/recommended', auth, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id).select('profile');
+    if (!currentUser) return res.status(404).json({ msg: 'User not found' });
+
+    const skillsToLearn = currentUser.profile?.skillsToLearn?.map(s => s.skillName.toLowerCase()) || [];
+
+    if (!skillsToLearn.length) {
+      return res.status(200).json([]); // No skills to recommend on
+    }
+
+    // Find users who teach any of those skills
+    const recommended = await User.find({
+      _id: { $ne: req.user.id }, // exclude self
+      "profile.skillsOffered.skillName": { $in: skillsToLearn }
+    }).select("-password");
+
+    res.json(recommended);
+  } catch (err) {
+    console.error("❌ Error fetching recommended users:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
 module.exports = router;

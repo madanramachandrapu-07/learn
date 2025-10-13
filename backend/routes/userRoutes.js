@@ -15,6 +15,37 @@ const User = require("../models/User");
 //   }
 // });
 
+
+
+// @route   GET /api/users/search?query=python
+// @desc    Search users by name, username, or skills
+// @access  Private
+router.get("/search", auth, async (req, res) => {
+  try {
+    const query = req.query.query?.trim();
+    if (!query) return res.status(400).json({ message: "Query required" });
+
+    // Use $or and regex across nested fields safely
+    const users = await User.find({
+      $or: [
+        { "profile.fullName": { $regex: query, $options: "i" } },
+        { "profile.username": { $regex: query, $options: "i" } },
+        { "profile.skillsOffered.skillName": { $regex: query, $options: "i" } },
+        { "profile.skillsToLearn.skillName": { $regex: query, $options: "i" } },
+      ],
+    }).select("-password");
+
+    res.json(users);
+  } catch (err) {
+    console.error("❌ Error searching users:", err);
+    res.status(500).json({ message: "Server error during search" });
+  }
+});
+
+
+
+
+
 router.get("/:id", auth, async (req, res) => {
   try {
     let user;
@@ -33,6 +64,9 @@ router.get("/:id", auth, async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
+
+
 
 
 

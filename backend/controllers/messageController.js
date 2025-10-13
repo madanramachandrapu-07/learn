@@ -21,7 +21,7 @@ exports.getConversations = async (req, res) => {
 
     // Step 1: Get all accepted connections
     const connections = await Request.find({
-      status: "accepted",
+      status: { $in: ["accepted", "completed"] },
       $or: [{ fromUser: userId }, { toUser: userId }]
     })
       .populate("fromUser", "profile email")

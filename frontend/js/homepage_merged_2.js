@@ -421,6 +421,24 @@ function handleSearchSelection(item) {
 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Skill Categories functionality
 function populateSkillCategories() {
     const categoryGrid = document.getElementById('categoryGrid');
@@ -1032,6 +1050,17 @@ document.addEventListener("click", (e) => {
 
 // ==================== CONNECTIONS FEATURE ====================
 // ==================== CONNECTIONS FEATURE ====================
+// helper parseJwt if not already defined
+function parseJwt(token) {
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+  } catch (e) {
+    return {};
+  }
+}
+
+// Updated loadConnections
 async function loadConnections() {
   const token = localStorage.getItem("token");
   if (!token) return;
@@ -1052,12 +1081,12 @@ async function loadConnections() {
 
     container.innerHTML = "";
 
-    if (!data.length) {
+    if (!Array.isArray(data) || !data.length) {
       container.innerHTML = "<p>No connections yet.</p>";
       return;
     }
 
-    // ✅ Correctly extract user id from JWT payload
+    // extract logged-in user id
     const payload = parseJwt(token);
     const userId = payload.user?.id;
 
@@ -1076,10 +1105,14 @@ async function loadConnections() {
       }
 
       const profile = other.profile || {};
+      const isCompleted = conn.status === "completed";
+      const completedByMe = Array.isArray(conn.completedBy) && conn.completedBy.map(id => id.toString()).includes(userId);
+      const completedCount = Array.isArray(conn.completedBy) ? conn.completedBy.length : 0;
 
+      // include connection id in data-connectionid attribute
       container.innerHTML += `
         <div class="col-md-6">
-          <div class="card shadow-sm p-3 mb-3">
+          <div class="card shadow-sm p-3 mb-3 ${isCompleted ? "bg-light" : ""}">
             <div class="d-flex align-items-center">
               <img src="./images/user.png" class="rounded-circle me-2" width="40" height="40" />
               <div>
@@ -1088,12 +1121,19 @@ async function loadConnections() {
               </div>
             </div>
             <p class="mt-2"><strong>Skills Offered:</strong> ${
-              profile.skillsOffered?.map(s => `${s.skillName} (${s.level})`).join(", ") || "None"
+              (profile.skillsOffered || []).map(s => `${s.skillName} (${s.level})`).join(", ") || "None"
             }</p>
+
             <div class="connection-actions mt-2">
               <button class="btn btn-sm btn-primary view-profile-btn me-2" data-context="connections" data-userid="${other._id}">View Profile</button>
-              <button class="btn btn-sm btn-success message-btn" data-id="${other._id}">Message</button>
-              <button class="btn btn-sm btn-warning live-btn" id="startVideoCallBtn" data-id="${other._id}">Mark As Complete</button>
+              <button class="btn btn-sm btn-success message-btn me-2" data-id="${other._id}">Message</button>
+              ${
+                isCompleted
+                  ? `<button class="btn btn-sm btn-secondary" disabled>✅ Completed (${completedCount})</button>`
+                  : `<button class="btn btn-sm btn-warning mark-complete-btn" data-connectionid="${conn._id}" data-userid="${other._id}">
+                       ${completedByMe ? "✓ Marked (waiting)" : "Mark As Complete"} ${completedCount ? `(${completedCount})` : ""}
+                     </button>`
+              }
             </div>
           </div>
         </div>
@@ -1105,6 +1145,47 @@ async function loadConnections() {
     console.error("Error loading connections:", err);
   }
 }
+
+// New click handler for Mark As Complete
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".mark-complete-btn");
+  if (!btn) return;
+
+  const connectionId = btn.dataset.connectionid;
+  if (!connectionId) return alert("Connection ID missing.");
+
+  const token = localStorage.getItem("token");
+  if (!token) return alert("Please log in first.");
+
+  try {
+    btn.disabled = true;
+    btn.innerText = "Marking...";
+
+    const res = await fetch(`api/connections/${connectionId}/complete`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "x-auth-token": token
+      }
+    });
+
+    const result = await res.json();
+    if (res.ok) {
+      // refresh list so UI updates (button state or Completed label will show)
+      await loadConnections();
+    } else {
+      alert(result.message || "Could not mark complete");
+      btn.disabled = false;
+      btn.innerText = "Mark As Complete";
+    }
+  } catch (err) {
+    console.error("Error marking connection complete:", err);
+    alert("Something went wrong");
+    btn.disabled = false;
+    btn.innerText = "Mark As Complete";
+  }
+});
+
 
 
 // Handle View Profile button click
@@ -1175,6 +1256,9 @@ document.addEventListener("click", async (e) => {
     }
   }
 });
+
+
+
 
 
 
@@ -2613,6 +2697,443 @@ function populateSkillsList(listId, skillsArray) {
     listEl.appendChild(item);
   });
 }
+
+
+
+//Dashboard section
+// ===============================
+// DASHBOARD: USER PROFILE INFO
+// ===============================
+
+// Reuse your token function
+function getToken() {
+  return localStorage.getItem('token');
+}
+
+async function loadDashboardProfile() {
+  const token = getToken();
+  if (!token) {
+    console.warn('Dashboard: no token found in localStorage.');
+    return;
+  }
+
+  try {
+    const res = await fetch('api/profile', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': token
+      }
+    });
+
+    const user = await res.json();
+
+    if (!res.ok) {
+      console.error('Dashboard: failed to fetch profile', user);
+      return;
+    }
+
+    const profile = user.profile || {};
+
+    // Basic info
+    const fullName = profile.fullName || user.fullName || 'Unnamed User';
+    const username = profile.username || user.username || '';
+    const avatarEl = document.querySelector('.user-overview .avatar');
+    const nameEl = document.getElementById('userName');
+    const usernameEl = document.getElementById('userUsername');
+    const learnEl = document.getElementById('skillsToLearn');
+    const teachEl = document.getElementById('skillsToTeach');
+
+    // Set Name & Username
+    if (nameEl) nameEl.textContent = fullName;
+    if (usernameEl) usernameEl.textContent = username ? `@${username}` : '';
+
+    // Default avatar (you can replace with actual path if stored later)
+    if (avatarEl) {
+      avatarEl.src = 'default-avatar.png';
+    }
+
+    // Handle Skills Offered & Skills To Learn
+    const skillsOffered = Array.isArray(profile.skillsOffered)
+      ? profile.skillsOffered.map(skill => `${skill.skillName} (${skill.level})`)
+      : [];
+
+    const skillsToLearn = Array.isArray(profile.skillsToLearn)
+      ? profile.skillsToLearn.map(skill => `${skill.skillName} (${skill.level})`)
+      : [];
+
+    if (teachEl) {
+      teachEl.textContent = skillsOffered.length
+        ? skillsOffered.join(', ')
+        : 'No skills to teach listed';
+    }
+
+    if (learnEl) {
+      learnEl.textContent = skillsToLearn.length
+        ? skillsToLearn.join(', ')
+        : 'No skills to learn listed';
+    }
+
+  } catch (err) {
+    console.error('Dashboard: error while loading profile', err);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadDashboardProfile);
+
+
+async function updateSkillSummary() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetch("api/connections", {
+      headers: { "x-auth-token": token }
+    });
+
+    const data = await res.json();
+    if (!Array.isArray(data)) {
+      console.error("Invalid connections data:", data);
+      return;
+    }
+
+    // Extract logged-in user ID
+    const payload = parseJwt(token);
+    const userId = payload.user?.id;
+
+    // Calculate metrics
+    const totalConnections = data.filter(conn => {
+      const fromId = conn.fromUser?._id?.toString();
+      const toId = conn.toUser?._id?.toString();
+      return fromId === userId || toId === userId;
+    }).length;
+
+    const completedSwaps = data.filter(conn => conn.status === "completed").length;
+
+    const ongoingSwaps = data.filter(conn =>
+      ["accepted", "active"].includes(conn.status)
+    ).length;
+
+    // Update UI
+    document.getElementById("totalConnections").textContent = totalConnections;
+    document.getElementById("completedSwaps").textContent = completedSwaps;
+    document.getElementById("ongoingSwaps").textContent = ongoingSwaps;
+
+    console.log("✅ Skill Summary updated:", { totalConnections, completedSwaps, ongoingSwaps });
+  } catch (err) {
+    console.error("Error updating skill summary:", err);
+  }
+}
+
+// Call both functions together when dashboard loads
+document.addEventListener("DOMContentLoaded", () => {
+  loadConnections();
+  updateSkillSummary();
+});
+
+
+
+
+async function loadRecentChats() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  try {
+    const res = await fetch("api/messages", {
+      headers: { "x-auth-token": token }
+    });
+    const conversations = await res.json();
+
+    const recentChatsList = document.getElementById("recentChatsList");
+    recentChatsList.innerHTML = "";
+
+    if (!conversations.length) {
+      recentChatsList.innerHTML = `<li class="text-muted">No recent chats yet.</li>`;
+      return;
+    }
+
+    const payload = parseJwt(token);
+    const currentUserId = payload.user?.id;
+
+    // Sort by last updated
+    conversations.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+    conversations.slice(0, 5).forEach(conv => {
+      // Determine the chat partner
+      const otherUser =
+        conv.participants?.find(u => u._id !== currentUserId) ||
+        conv.user ||
+        conv.receiver ||
+        conv.sender;
+
+      const partnerName = otherUser?.profile?.fullName || "User";
+      const partnerUsername = otherUser?.username
+        ? `@${otherUser.username}`
+        : "";
+      const partnerAvatar = otherUser?.profilePicture || "./images/user.png";
+
+      const lastMsg = conv.lastMessage;
+      let lastMsgText = "";
+      let time = "";
+
+      if (lastMsg) {
+        if (lastMsg.text) {
+          lastMsgText = lastMsg.text.length > 40
+            ? lastMsg.text.slice(0, 40) + "..."
+            : lastMsg.text;
+        } else if (lastMsg.fileType) {
+          switch (lastMsg.fileType) {
+            case "image":
+              lastMsgText = "🖼️ Image";
+              break;
+            case "video":
+              lastMsgText = "🎥 Video";
+              break;
+            case "audio":
+              lastMsgText = "🎧 Audio";
+              break;
+            default:
+              lastMsgText = "📎 Attachment";
+          }
+        } else {
+          lastMsgText = "No message text";
+        }
+
+        time = new Date(lastMsg.createdAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      }
+
+      // Build HTML for each chat item
+      const li = document.createElement("li");
+      li.className = "recent-chat-item d-flex align-items-center p-2 mb-2 rounded";
+      li.style.cursor = "pointer";
+      li.style.transition = "background 0.2s";
+      li.onmouseover = () => (li.style.background = "#f8f9fa");
+      li.onmouseout = () => (li.style.background = "transparent");
+
+      li.innerHTML = `
+        <img src="${partnerAvatar}" width="45" height="45" class="rounded-circle me-2" />
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">${partnerName}</h6>
+            <small class="text-muted">${time || ""}</small>
+          </div>
+          <small class="text-muted">${lastMsgText}</small><br>
+          <small class="text-muted">${partnerUsername}</small>
+        </div>
+      `;
+
+      // On click → open chat (redirect to chat page)
+      // On click → open chat inside homepage.html
+      li.onclick = () => {
+        localStorage.setItem("openChatUserId", otherUser?._id);
+        showSection("messages");
+        openChat(otherUser?._id, otherUser?.profile || otherUser);
+      };
+
+
+      recentChatsList.appendChild(li);
+    });
+  } catch (err) {
+    console.error("Error loading recent chats:", err);
+  }
+}
+
+// Call it with others
+document.addEventListener("DOMContentLoaded", () => {
+  updateSkillSummary();
+  loadConnections();
+  loadRecentChats();
+});
+
+
+
+
+// ===============================
+// Recommended Skill Partners Logic
+// ===============================
+
+// // Function to fetch recommended users
+// async function loadRecommendedPartners() {
+//   const recommendedContainer = document.getElementById("recommendedPartnersList");
+//   if (!recommendedContainer) return;
+
+//   recommendedContainer.innerHTML = `<p>Loading recommendations...</p>`;
+
+//   try {
+//     // 1️⃣ Get current logged-in user
+//     const token = localStorage.getItem("token");
+//     const resUser = await fetch("api/users/profile", {
+//       headers: { "x-auth-token": token },
+//     });
+//     const currentUser = await resUser.json();
+
+//     // 2️⃣ Get all users
+//     const resAll = await fetch("api/users", {
+//       headers: { "x-auth-token": token },
+//     });
+//     const allUsers = await resAll.json();
+
+//     // 3️⃣ Filter users that match skill needs
+//     const recommended = allUsers.filter(user => {
+//       if (user._id === currentUser._id) return false; // exclude self
+
+//       const teachable = user.profile?.skillsOffered?.map(s => s.skillName.toLowerCase()) || [];
+//       const learnable = user.profile?.skillsToLearn?.map(s => s.skillName.toLowerCase()) || [];
+
+//       const currentTeachable = currentUser.profile?.skillsOffered?.map(s => s.skillName.toLowerCase()) || [];
+//       const currentLearnable = currentUser.profile?.skillsToLearn?.map(s => s.skillName.toLowerCase()) || [];
+
+//       // Mutual match: user can teach what I want to learn OR I can teach what they want
+//       const match1 = currentLearnable.some(skill => teachable.includes(skill));
+//       const match2 = currentTeachable.some(skill => learnable.includes(skill));
+
+//       return match1 || match2;
+//     });
+
+//     // 4️⃣ Display recommended users
+//     recommendedContainer.innerHTML = "";
+
+//     if (recommended.length === 0) {
+//       recommendedContainer.innerHTML = `<p class="text-muted">No matching skill partners found yet 😔</p>`;
+//       return;
+//     }
+
+//     recommended.forEach(user => {
+//       const avatarUrl = "https://cdn-icons-png.flaticon.com/512/219/219970.png";
+//       const skillsTeach = user.profile?.skillsOffered?.map(s => s.skillName).join(", ") || "None";
+//       const skillsLearn = user.profile?.skillsToLearn?.map(s => s.skillName).join(", ") || "None";
+
+//       const card = document.createElement("div");
+//       card.className = "recommended-card";
+//       card.innerHTML = `
+//         <div class="recommended-user">
+//           <img src="${avatarUrl}" class="recommended-avatar" alt="User Avatar">
+//           <div class="recommended-info">
+//             <h5>${user.profile?.fullName || "Unnamed User"}</h5>
+//             <p class="text-muted">@${user.profile?.username || "unknown"}</p>
+//             <p><strong>Teaches:</strong> ${skillsTeach}</p>
+//             <p><strong>Wants to Learn:</strong> ${skillsLearn}</p>
+//           </div>
+//           <button class="btn btn-primary btn-sm send-request-btn"
+//                   onclick="sendSkillRequest('${user.profile?.username}', 'Skill Exchange')">
+//             Request
+//           </button>
+//         </div>
+//       `;
+//       recommendedContainer.appendChild(card);
+//     });
+
+//   } catch (err) {
+//     console.error("Error loading recommended partners:", err);
+//     recommendedContainer.innerHTML = `<p class="text-danger">Failed to load recommendations.</p>`;
+//   }
+// }
+
+// // ===============================
+// // Call this function when homepage loads
+// // ===============================
+// document.addEventListener("DOMContentLoaded", () => {
+//   loadRecommendedPartners();
+// });
+
+
+// Call this when Home Section loads
+// document.addEventListener("DOMContentLoaded", loadRecommendedPartners);
+
+
+
+// 🔍 Search functionality
+// 🔍 Search functionality (opens separate section)
+async function searchUsers(queryInputId = "searchInput2") {
+  const query = document.getElementById(queryInputId).value.trim();
+  const resultsContainer = document.getElementById("searchResultsContainer");
+  resultsContainer.innerHTML = "";
+
+  if (!query) {
+    resultsContainer.innerHTML = "<p class='text-muted text-center'>Please enter a search term.</p>";
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+  try {
+    const response = await fetch(`http://localhost:5000/api/users/search?query=${encodeURIComponent(query)}`, {
+      headers: { "x-auth-token": token }
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("❌ Search failed:", response.status, text);
+      resultsContainer.innerHTML = `<p class='text-danger text-center'>Server Error (${response.status})</p>`;
+      return;
+    }
+
+    const users = await response.json();
+    if (!users.length) {
+      resultsContainer.innerHTML = "<p class='text-center text-muted'>No matching users found.</p>";
+      return;
+    }
+
+    users.forEach(user => {
+      const profile = user.profile || {};
+      const card = document.createElement("div");
+      card.className = "search-card";
+
+      const skillsOffered = profile.skillsOffered?.map(s => s.skillName).join(", ") || "None";
+      const skillsToLearn = profile.skillsToLearn?.map(s => s.skillName).join(", ") || "None";
+
+      card.innerHTML = `
+        <h5>${profile.fullName || "Unnamed User"}</h5>
+        <p><strong>@${profile.username || "unknown"}</strong></p>
+        <p><strong>Teaches:</strong> ${skillsOffered}</p>
+        <p><strong>Learns:</strong> ${skillsToLearn}</p>
+        <button class="btn btn-sm btn-outline-primary mt-2 request-btn" data-userid="${user._id}">
+          Request
+        </button>
+
+      `;
+
+      // Handle Request button
+      // card.querySelector("button").addEventListener("click", () => {
+      //   sendSkillRequest(user._id);
+      // });
+
+      resultsContainer.appendChild(card);
+    });
+  } catch (err) {
+    console.error("Error performing search:", err);
+    resultsContainer.innerHTML = "<p class='text-danger text-center'>Something went wrong. Please try again.</p>";
+  }
+}
+
+// 🔹 Hook up search button
+document.getElementById("searchBtn2").addEventListener("click", () => {
+  searchUsers("searchInput2");
+});
+
+// 🔹 Press Enter to search
+document.getElementById("searchInput2").addEventListener("keydown", e => {
+  if (e.key === "Enter") searchUsers("searchInput2");
+});
+
+// 🔹 Show search section (from navbar or anywhere)
+function openSearchSection() {
+  showSection("searchResultsSection");
+  document.getElementById("searchInput2").focus();
+}
+
+// 🔹 Back button
+document.getElementById("backToHomeBtn").addEventListener("click", () => {
+  showSection("home");
+});
+
+
+
+
+
+
 
 /* ensure fetch runs on DOMContentLoaded */
 document.addEventListener('DOMContentLoaded', function() {

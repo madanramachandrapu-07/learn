@@ -17,81 +17,81 @@
     
 <script>
 
-document.addEventListener("DOMContentLoaded", function () {
-  const input = document.getElementById('searchInput');
-  const dropdown = document.getElementById('searchDropdown');
+// document.addEventListener("DOMContentLoaded", function () {
+//   const input = document.getElementById('searchInput');
+//   const dropdown = document.getElementById('searchDropdown');
 
-  const staticSuggestions = [
-    "Python", "Drawing", "UI/UX", "React", "Public Speaking", "Divya", "Aman", "Music", "Art"
-  ];
+//   const staticSuggestions = [
+//     "Python", "Drawing", "UI/UX", "React", "Public Speaking", "Divya", "Aman", "Music", "Art"
+//   ];
 
-  let history = JSON.parse(localStorage.getItem("searchHistory")) || [];
-  let activeIndex = -1;
+//   let history = JSON.parse(localStorage.getItem("searchHistory")) || [];
+//   let activeIndex = -1;
 
-  function showSuggestions(query) {
-    dropdown.innerHTML = '';
-    activeIndex = -1;
+//   function showSuggestions(query) {
+//     dropdown.innerHTML = '';
+//     activeIndex = -1;
 
-    const matches = query
-      ? staticSuggestions.filter(item => item.toLowerCase().includes(query.toLowerCase()))
-      : history;
+//     const matches = query
+//       ? staticSuggestions.filter(item => item.toLowerCase().includes(query.toLowerCase()))
+//       : history;
 
-    if (matches.length === 0) {
-      dropdown.innerHTML = '<div class="suggestion-item">No results found</div>';
-      dropdown.style.display = 'block';
-      return;
-    }
+//     if (matches.length === 0) {
+//       dropdown.innerHTML = '<div class="suggestion-item">No results found</div>';
+//       dropdown.style.display = 'block';
+//       return;
+//     }
 
-    matches.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'suggestion-item';
-      div.textContent = item;
-      div.onclick = () => selectSuggestion(item);
-      dropdown.appendChild(div);
-    });
+//     matches.forEach(item => {
+//       const div = document.createElement('div');
+//       div.className = 'suggestion-item';
+//       div.textContent = item;
+//       div.onclick = () => selectSuggestion(item);
+//       dropdown.appendChild(div);
+//     });
 
-    dropdown.style.display = 'block';
-  }
+//     dropdown.style.display = 'block';
+//   }
 
-  function selectSuggestion(text) {
-    input.value = text;
-    dropdown.innerHTML = '';
-    if (!history.includes(text)) {
-      history.unshift(text);
-      history = history.slice(0, 5);
-      localStorage.setItem("searchHistory", JSON.stringify(history));
-    }
-    alert("You searched: " + text); // Replace this with actual navigation or logic
-  }
+//   function selectSuggestion(text) {
+//     input.value = text;
+//     dropdown.innerHTML = '';
+//     if (!history.includes(text)) {
+//       history.unshift(text);
+//       history = history.slice(0, 5);
+//       localStorage.setItem("searchHistory", JSON.stringify(history));
+//     }
+//     alert("You searched: " + text); // Replace this with actual navigation or logic
+//   }
 
-  input.addEventListener('input', () => {
-    showSuggestions(input.value);
-  });
+//   input.addEventListener('input', () => {
+//     showSuggestions(input.value);
+//   });
 
-  input.addEventListener('keydown', (e) => {
-    const items = dropdown.querySelectorAll('.suggestion-item');
-    if (!items.length) return;
+//   input.addEventListener('keydown', (e) => {
+//     const items = dropdown.querySelectorAll('.suggestion-item');
+//     if (!items.length) return;
 
-    if (e.key === 'ArrowDown') {
-      activeIndex = (activeIndex + 1) % items.length;
-    } else if (e.key === 'ArrowUp') {
-      activeIndex = (activeIndex - 1 + items.length) % items.length;
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (activeIndex >= 0) items[activeIndex].click();
-    }
+//     if (e.key === 'ArrowDown') {
+//       activeIndex = (activeIndex + 1) % items.length;
+//     } else if (e.key === 'ArrowUp') {
+//       activeIndex = (activeIndex - 1 + items.length) % items.length;
+//     } else if (e.key === 'Enter') {
+//       e.preventDefault();
+//       if (activeIndex >= 0) items[activeIndex].click();
+//     }
 
-    items.forEach((item, i) => {
-      item.classList.toggle('active', i === activeIndex);
-    });
-  });
+//     items.forEach((item, i) => {
+//       item.classList.toggle('active', i === activeIndex);
+//     });
+//   });
 
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-wrapper')) {
-      dropdown.innerHTML = '';
-    }
-  });
-});
+//   document.addEventListener('click', (e) => {
+//     if (!e.target.closest('.search-wrapper')) {
+//       dropdown.innerHTML = '';
+//     }
+//   });
+// });
 
 // function showSection(sectionId) {
 //     const sections = document.querySelectorAll('.content-section');
@@ -188,91 +188,91 @@ function sendMessage() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  const input = document.getElementById('searchInput');
-  const dropdown = document.getElementById('searchDropdown');
-  const searchableElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, .skill-tag, .skill-offered, .brand-text, .section-header, .summary-content h5');
+// document.addEventListener("DOMContentLoaded", function () {
+//   const input = document.getElementById('searchInput');
+//   const dropdown = document.getElementById('searchDropdown');
+//   const searchableElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, .skill-tag, .skill-offered, .brand-text, .section-header, .summary-content h5');
 
-  let contentSet = new Set();
-  searchableElements.forEach(el => {
-    if (el.textContent.trim()) contentSet.add(el.textContent.trim());
-  });
+//   let contentSet = new Set();
+//   searchableElements.forEach(el => {
+//     if (el.textContent.trim()) contentSet.add(el.textContent.trim());
+//   });
 
-  const contentList = [...contentSet];
-  let history = JSON.parse(localStorage.getItem("searchHistory")) || [];
-  let activeIndex = -1;
+//   const contentList = [...contentSet];
+//   let history = JSON.parse(localStorage.getItem("searchHistory")) || [];
+//   let activeIndex = -1;
 
-  function showSuggestions(query) {
-    dropdown.innerHTML = '';
-    activeIndex = -1;
+//   function showSuggestions(query) {
+//     dropdown.innerHTML = '';
+//     activeIndex = -1;
 
-    const matches = query
-      ? contentList.filter(item => item.toLowerCase().includes(query.toLowerCase()))
-      : history;
+//     const matches = query
+//       ? contentList.filter(item => item.toLowerCase().includes(query.toLowerCase()))
+//       : history;
 
-    if (matches.length === 0) {
-      dropdown.innerHTML = '<div class="suggestion-item">No results found</div>';
-      dropdown.style.display = 'block';
-      return;
-    }
+//     if (matches.length === 0) {
+//       dropdown.innerHTML = '<div class="suggestion-item">No results found</div>';
+//       dropdown.style.display = 'block';
+//       return;
+//     }
 
-    matches.forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'suggestion-item';
-      div.textContent = item;
-      div.onclick = () => selectSuggestion(item);
-      dropdown.appendChild(div);
-    });
+//     matches.forEach(item => {
+//       const div = document.createElement('div');
+//       div.className = 'suggestion-item';
+//       div.textContent = item;
+//       div.onclick = () => selectSuggestion(item);
+//       dropdown.appendChild(div);
+//     });
 
-    dropdown.style.display = 'block';
-  }
+//     dropdown.style.display = 'block';
+//   }
 
-  function selectSuggestion(text) {
-    input.value = text;
-    dropdown.innerHTML = '';
-    if (!history.includes(text)) {
-      history.unshift(text);
-      history = history.slice(0, 5);
-      localStorage.setItem("searchHistory", JSON.stringify(history));
-    }
+//   function selectSuggestion(text) {
+//     input.value = text;
+//     dropdown.innerHTML = '';
+//     if (!history.includes(text)) {
+//       history.unshift(text);
+//       history = history.slice(0, 5);
+//       localStorage.setItem("searchHistory", JSON.stringify(history));
+//     }
 
-    // Scroll to matching section if found
-    const match = Array.from(searchableElements).find(el => el.textContent.trim() === text);
-    if (match) {
-      match.scrollIntoView({ behavior: "smooth", block: "center" });
-      match.style.backgroundColor = "#ffffcc"; // highlight
-      setTimeout(() => match.style.backgroundColor = "", 1500);
-    }
-  }
+//     // Scroll to matching section if found
+//     const match = Array.from(searchableElements).find(el => el.textContent.trim() === text);
+//     if (match) {
+//       match.scrollIntoView({ behavior: "smooth", block: "center" });
+//       match.style.backgroundColor = "#ffffcc"; // highlight
+//       setTimeout(() => match.style.backgroundColor = "", 1500);
+//     }
+//   }
 
-  input.addEventListener('input', () => {
-    showSuggestions(input.value);
-  });
+//   input.addEventListener('input', () => {
+//     showSuggestions(input.value);
+//   });
 
-  input.addEventListener('keydown', (e) => {
-    const items = dropdown.querySelectorAll('.suggestion-item');
-    if (!items.length) return;
+//   input.addEventListener('keydown', (e) => {
+//     const items = dropdown.querySelectorAll('.suggestion-item');
+//     if (!items.length) return;
 
-    if (e.key === 'ArrowDown') {
-      activeIndex = (activeIndex + 1) % items.length;
-    } else if (e.key === 'ArrowUp') {
-      activeIndex = (activeIndex - 1 + items.length) % items.length;
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (activeIndex >= 0) items[activeIndex].click();
-    }
+//     if (e.key === 'ArrowDown') {
+//       activeIndex = (activeIndex + 1) % items.length;
+//     } else if (e.key === 'ArrowUp') {
+//       activeIndex = (activeIndex - 1 + items.length) % items.length;
+//     } else if (e.key === 'Enter') {
+//       e.preventDefault();
+//       if (activeIndex >= 0) items[activeIndex].click();
+//     }
 
-    items.forEach((item, i) => {
-      item.classList.toggle('active', i === activeIndex);
-    });
-  });
+//     items.forEach((item, i) => {
+//       item.classList.toggle('active', i === activeIndex);
+//     });
+//   });
 
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-wrapper')) {
-      dropdown.innerHTML = '';
-    }
-  });
-});
+//   document.addEventListener('click', (e) => {
+//     if (!e.target.closest('.search-wrapper')) {
+//       dropdown.innerHTML = '';
+//     }
+//   });
+// });
 
 </script>
 
@@ -351,11 +351,31 @@ document.addEventListener("DOMContentLoaded", function () {
                 <span class="brand-text ms-2">SkillSwap</span>
             </a>
             
-            <div class="search-wrapper">
+            <!-- <div class="search-wrapper">
                 <i class="fas fa-search search-icon"></i>
                 <input type="text" id="searchInput" class="search-box" placeholder="Search skills, users, categories..." autocomplete="off" />
                 <div id="searchDropdown" class="dropdown-suggestions"></div>
+            </div> -->
+            <!-- 🔍 Search Bar -->
+            <!-- 🔍 Search Results Section -->
+            <div id="searchResultsSection" class="content-section" style="display:none;">
+              <div class="search-results-header d-flex align-items-center justify-content-between mb-3">
+                <h3>Search Results</h3>
+                <button id="backToHomeBtn" class="btn btn-outline-secondary btn-sm">← Back</button>
+              </div>
+
+              <div class="search-bar">
+                <input type="text" id="searchInput2" placeholder="Search by name, skill, or category..." />
+                <button id="searchBtn2">Search</button>
+              </div>
+
+              <div id="searchResultsContainer" class="search-results-grid"></div>
             </div>
+
+            <li><a href="#" onclick="openSearchSection()">🔍 Search</a></li>
+
+
+
 
             <!-- Profile Dropdown -->
             <div class="dropdown">
@@ -425,7 +445,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
                                 <div class="summary-content" onclick="showSection('messages')">
                                     <h5>Messages</h5>
-                                    <p>You have 2 new messages</p>
                                 </div>
                             </div>
                         </div>
@@ -436,7 +455,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
                                 <div class="summary-content" onclick="showSection('requests')">
                                     <h5>Requests</h5>
-                                    <p>1 pending skill swap request</p>
                                 </div>
                             </div>
                         </div>
@@ -446,15 +464,14 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <i class="fas fa-calendar"></i>
                                 </div>
                                 <div class="summary-content" onclick="showSection('dashboard')">
-                                    <h5>Upcoming Sessions</h5>
-                                    <p>Next session in 2 hours</p>
+                                    <h5>Dashboard</h5>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Recommended Skills -->
-                    <div class="section-header mb-3">
+                    <!-- <div class="section-header mb-3">
                         <h3><i class="fas fa-star me-2"></i>Recommended Skills for You</h3>
                     </div>
                     <div class="row mb-4">
@@ -497,10 +514,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Featured Skill Swaps -->
-                    <div class="section-header mb-3">
+                    <!-- <div class="section-header mb-3">
                         <h3><i class="fas fa-fire me-2"></i>Featured Skill Swaps</h3>
                     </div>
                     <div class="row mb-4">
@@ -552,7 +569,19 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
+
+
+
+                      <!-- Recommended Skill Partners -->
+                    <!-- <div id="recommendedPartnersSection" class="mt-4">
+                      <h4 class="mb-3">Recommended Skill Partners 💡</h4>
+                      <div id="recommendedPartnersList" class="recommended-grid"></div>
+                    </div> -->
+
+
+
+
 
                     <!-- Explore Categories -->
                     <div class="section-header mb-3">
@@ -608,6 +637,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div>
                         </div>
                     </div>
+                    
 
                     <!-- Call to Action -->
                     <div class="cta-section text-center">
@@ -688,15 +718,15 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
 
             <!-- DASHBOARD SECTION -->
-            <div id="dashboardSection" class="content-section">
+            <!-- <div id="dashboardSection" class="content-section">
                 <div class="container">
                     <div class="dashboard-header mb-4">
                         <h2><i class="fas fa-tachometer-alt me-2"></i>My Dashboard</h2>
                         <p>Hello 👋</p>
-                    </div>
+                    </div> -->
 
                     <!-- Quick Stats -->
-                    <div class="row mb-4">
+                    <!-- <div class="row mb-4">
                         <div class="col-md-3 mb-3">
                             <div class="stat-card">
                                 <div class="stat-icon">
@@ -729,8 +759,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <p>Completed Swaps</p>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
+                        </div> -->
+                        <!-- <div class="col-md-3 mb-3">
                             <div class="stat-card">
                                 <div class="stat-icon">
                                     <i class="fas fa-star"></i>
@@ -741,10 +771,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Your Skills -->
-                    <div class="row mb-4">
+                    <!-- <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="skills-panel">
                                 <div class="skills-header">
@@ -809,10 +839,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Upcoming Sessions -->
-                    <div class="dashboard-section mb-4">
+                    <!-- <div class="dashboard-section mb-4">
                         <div class="section-header">
                             <h4><i class="fas fa-calendar me-2"></i>Upcoming Sessions</h4>
                         </div>
@@ -842,10 +872,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- Quick Actions -->
-                    <div class="quick-actions text-center">
+                    <!-- <div class="quick-actions text-center">
                         <button class="btn btn-primary me-2" onclick="addSkill('teach')">
                             <i class="fas fa-plus me-2"></i>Add New Skill
                         </button>
@@ -857,7 +887,74 @@ document.addEventListener("DOMContentLoaded", function () {
                         </button>
                     </div>
                 </div>
+            </div> -->
+
+
+
+            <!-- DASHBOARD SECTION -->
+             <div id="dashboardSection" class="content-section">
+
+              <!-- 1. User Overview -->
+              <section class="user-overview card">
+                <img src="./images/user.png" alt="Profile Picture" class="avatar">
+                <h2 id="userName">John Doe</h2>
+                <p>@<span id="userUsername">johndoe</span></p>
+                <div class="skills">
+                  <p><strong>Skills to Learn:</strong> <span id="skillsToLearn">React, Photography</span></p>
+                  <p><strong>Skills to Teach:</strong> <span id="skillsToTeach">Python, Web Design</span></p>
+                </div>
+              </section>
+
+              <!-- 2. Skill Summary -->
+              <section class="skill-summary card">
+                <h3>Skill Summary</h3>
+                <div class="summary-grid">
+                  <div class="summary-item">
+                    <h4 id="totalConnections">0</h4>
+                    <p>Total Connections</p>
+                  </div>
+                  <div class="summary-item">
+                    <h4 id="completedSwaps">0</h4>
+                    <p>Skillswaps Completed</p>
+                  </div>
+                  <div class="summary-item">
+                    <h4 id="ongoingSwaps">0</h4>
+                    <p>Ongoing Skillswaps</p>
+                  </div>
+                </div>
+              </section>
+
+
+              <!-- 3. Recent Chats -->`3
+              <section class="recent-chats card">
+                <h3>Recent Chats</h3>
+                <ul id="recentChatsList"></ul>
+              </section>
+
+              <!-- 4. Recommended Skill Partners -->
+              <section class="recommended-partners card">
+                <h3>Recommended Skill Partners</h3>
+                <div id="recommendedList" class="partners-grid"></div>
+              </section>
+
+              <!-- 5. Activity Timeline -->
+              <section class="activity-timeline card">
+                <h3>Activity Timeline</h3>
+                <ul id="activityList"></ul>
+              </section>
+
+              <!-- 6. Achievements -->
+              <section class="achievements card">
+                <h3>Achievements</h3>
+                <div id="achievementsList" class="badge-grid"></div>
+              </section>
+
             </div>
+
+
+
+
+
 
             <!-- CONNECTIONS SECTION -->
             <div id="connectionsSection" class="content-section" style="display:none;">
