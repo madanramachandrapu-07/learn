@@ -1186,7 +1186,19 @@ document.addEventListener("click", async (e) => {
   }
 });
 
+// 1. Initialize the modal instance ONCE in the global scope.
+const profileModalEl = document.getElementById("profileModal");
+const profileModalInstance = new bootstrap.Modal(profileModalEl);
 
+// Helper function to prevent XSS attacks from user-generated content
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
 
 // Handle View Profile button click
 document.addEventListener("click", async (e) => {
@@ -2380,6 +2392,7 @@ function parseJwt(token) {
 //         });
 //     }
 // }
+
 function toggleEditMode() {
     editMode = !editMode;
     const editBtn = document.getElementById('editProfileBtn');

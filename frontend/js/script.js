@@ -339,40 +339,83 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
 
     // Function to handle the signup form submission
-    async function handleSignup(event) {
-        event.preventDefault(); // Prevents the page from reloading
+    // async function handleSignup(event) {
+    //     event.preventDefault(); // Prevents the page from reloading
 
-        // Get form data
+    //     // Get form data
+    //     const email = document.getElementById('signupEmail').value;
+    //     const password = document.getElementById('signupPassword').value;
+    //     const confirmPassword = document.getElementById('signupConfirmPassword').value;
+    //     const phoneNumber = document.getElementById('signupPhone').value;
+
+    //     // Basic frontend validation for password match
+    //     if (password !== confirmPassword) {
+    //         alert('Passwords do not match!');
+    //         return;
+    //     }
+
+    //     try {
+    //         // Send a POST request to our backend signup endpoint
+    //         const response = await fetch('http://localhost:5000/api/auth/signup', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({ email, password, phoneNumber }),
+    //         });
+
+    //         const data = await response.json();
+
+    //         if (response.ok) {
+    //             // Success: store the JWT and redirect
+    //             localStorage.setItem('token', data.token);
+    //             alert('Signup successful! Redirecting to profile setup...');
+    //             window.location.href = 'profile-1.html'; // You'll need to create this file
+    //         } else {
+    //             // Failure: show the error message from the backend
+    //             alert(data.msg || 'Signup failed.');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error during signup:', error);
+    //         alert('An error occurred. Please try again.');
+    //     }
+    // }
+
+
+    // --- Find and replace the entire 'handleSignup' function ---
+    async function handleSignup(event) {
+        event.preventDefault();
+
         const email = document.getElementById('signupEmail').value;
         const password = document.getElementById('signupPassword').value;
         const confirmPassword = document.getElementById('signupConfirmPassword').value;
         const phoneNumber = document.getElementById('signupPhone').value;
 
-        // Basic frontend validation for password match
         if (password !== confirmPassword) {
             alert('Passwords do not match!');
             return;
         }
 
         try {
-            // Send a POST request to our backend signup endpoint
-            const response = await fetch('http://localhost:5000/api/auth/signup', {
+            const response = await fetch('/api/auth/signup', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password, phoneNumber }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                // Success: store the JWT and redirect
-                localStorage.setItem('token', data.token);
-                alert('Signup successful! Redirecting to profile setup...');
-                window.location.href = 'profile-1.html'; // You'll need to create this file
+                alert(data.msg); // "OTP has been sent..."
+                
+                // Store email temporarily to use in the OTP step
+                sessionStorage.setItem('verificationEmail', email);
+
+                // Close signup modal and open OTP modal
+                document.getElementById('signUpModal').classList.remove('active');
+                document.getElementById('otpModal').classList.add('active');
+
             } else {
-                // Failure: show the error message from the backend
                 alert(data.msg || 'Signup failed.');
             }
         } catch (error) {
@@ -380,6 +423,61 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('An error occurred. Please try again.');
         }
     }
+
+    // --- Add this new function to handle OTP verification ---
+    async function handleOtpVerification(event) {
+        event.preventDefault();
+
+        const otp = document.getElementById('otpInput').value;
+        const email = sessionStorage.getItem('verificationEmail'); // Get email from storage
+
+        if (!email) {
+            alert('Something went wrong. Please try signing up again.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/auth/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Verification successful! Store token and redirect.
+                localStorage.setItem('token', data.token);
+                sessionStorage.removeItem('verificationEmail'); // Clean up
+                alert('Account created successfully! Redirecting to profile setup...');
+                window.location.href = 'profile-1.html'; // Or your profile setup page
+            } else {
+                alert(data.msg || 'OTP verification failed.');
+            }
+        } catch (error) {
+            console.error('Error during OTP verification:', error);
+            alert('An error occurred. Please try again.');
+        }
+    }
+
+    // --- Add event listener for the new OTP form ---
+    const otpForm = document.getElementById('otpForm');
+    if (otpForm) {
+        otpForm.addEventListener('submit', handleOtpVerification);
+    }
+    
+    // --- Also add a close button handler for the OTP modal ---
+    const closeOtpModalBtn = document.getElementById('closeOtpModal');
+    if(closeOtpModalBtn){
+        closeOtpModalBtn.addEventListener('click', function() {
+            document.getElementById('otpModal').classList.remove('active');
+        });
+    }
+
+    // ... (Your existing handleLogin and other event listeners remain the same) ...
+
+
+
 
     // Function to handle the login form submission
     async function handleLogin(event) {
@@ -418,6 +516,116 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('An error occurred. Please try again.');
         }
     }
+
+    // --- Add this new logic for Password Reset ---
+
+    const signInModal = document.getElementById('signInModal');
+    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+    const resetPasswordModal = document.getElementById('resetPasswordModal');
+
+    // 1. Handle clicking "Forgot password?" link
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            signInModal.classList.remove('active');
+            forgotPasswordModal.classList.add('active');
+        });
+    }
+    
+    // 2. Handle "Back to Sign In" link
+    const backToSignInLink = document.getElementById('backToSignInLink');
+     if (backToSignInLink) {
+        backToSignInLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            forgotPasswordModal.classList.remove('active');
+            signInModal.classList.add('active');
+        });
+    }
+
+    // 3. Handle the "Send OTP" form submission
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    if (forgotPasswordForm) {
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('forgotPasswordEmail').value;
+
+            try {
+                const response = await fetch('/api/auth/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+                
+                alert(data.msg); // Show "If an account exists..." message
+
+                if (response.ok) {
+                    // Store email to use in the next step
+                    sessionStorage.setItem('resetEmail', email);
+                    // Move to the next modal
+                    forgotPasswordModal.classList.remove('active');
+                    resetPasswordModal.classList.add('active');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    }
+
+    // 4. Handle the "Reset Password" form submission
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
+    if (resetPasswordForm) {
+        resetPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const otp = document.getElementById('resetOtpInput').value;
+            const newPassword = document.getElementById('resetNewPassword').value;
+            const email = sessionStorage.getItem('resetEmail');
+
+            if (!email) {
+                alert('Session expired. Please start the password reset process again.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp, newPassword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Success! Log the user in and redirect
+                    localStorage.setItem('token', data.token);
+                    sessionStorage.removeItem('resetEmail'); // Clean up
+                    alert('Password reset successfully! You are now logged in.');
+                    window.location.href = 'homepage.html';
+                } else {
+                    alert(data.msg); // "Invalid or expired OTP"
+                }
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    }
+    
+    // 5. Add close button handlers for the new modals
+    const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
+    if (closeForgotPasswordModal) {
+        closeForgotPasswordModal.addEventListener('click', () => forgotPasswordModal.classList.remove('active'));
+    }
+    
+    const closeResetPasswordModal = document.getElementById('closeResetPasswordModal');
+    if (closeResetPasswordModal) {
+        closeResetPasswordModal.addEventListener('click', () => resetPasswordModal.classList.remove('active'));
+    }
+
 
     // Add event listeners to the forms
     if (signupForm) {

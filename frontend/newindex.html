@@ -911,7 +911,7 @@
                         <label for="rememberMe" style="margin-bottom: 0;">Remember me</label>
                     </div>
                     <div style="text-align: right; margin-bottom: 1.5rem;">
-                        <a href="#" style="color: var(--accent-color); text-decoration: none;">Forgot password?</a>
+                        <a href="#" id="forgotPasswordLink" style="color: var(--accent-color); text-decoration: none;">Forgot password?</a>
                     </div>
                     <button type="submit" class="btn-submit">Sign In</button>
                     <div class="form-footer">
@@ -964,9 +964,80 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="otpModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Verify Your Email</h3>
+                <button class="modal-close" id="closeOtpModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>An OTP has been sent to the email address you provided. Please enter it below.</p>
+                <form id="otpForm">
+                    <div class="form-group">
+                        <label for="otpInput">6-Digit OTP</label>
+                        <input type="text" id="otpInput" class="form-control" placeholder="Enter OTP" required maxlength="6">
+                        <div class="error-message" id="otpError"></div>
+                    </div>
+                    <button type="submit" class="btn-submit">Verify & Complete Signup</button>
+                    <div class="form-footer">
+                        <p><a href="#" id="resendOtpLink">Resend OTP</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="forgotPasswordModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Forgot Password</h3>
+                <button class="modal-close" id="closeForgotPasswordModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter your email address and we'll send you an OTP to reset your password.</p>
+                <form id="forgotPasswordForm">
+                    <div class="form-group">
+                        <label for="forgotPasswordEmail">Email</label>
+                        <input type="email" id="forgotPasswordEmail" class="form-control" placeholder="Enter your email" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Send Reset OTP</button>
+                    <div class="form-footer">
+                        <p><a href="#" id="backToSignInLink">Back to Sign In</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resetPasswordModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Reset Your Password</h3>
+                <button class="modal-close" id="closeResetPasswordModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>An OTP has been sent to your email. Enter it below along with your new password.</p>
+                <form id="resetPasswordForm">
+                    <div class="form-group">
+                        <label for="resetOtpInput">6-Digit OTP</label>
+                        <input type="text" id="resetOtpInput" class="form-control" placeholder="Enter OTP" required maxlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="resetNewPassword">New Password</label>
+                        <input type="password" id="resetNewPassword" class="form-control" placeholder="Enter new password" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Reset Password & Sign In</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+
     <script src="js/script.js"></script>
     <script>
-// Initializing Lucide icons
+// Initializing Lucide 
 document.addEventListener('DOMContentLoaded', function() {
     lucide.createIcons();
     
@@ -1048,68 +1119,68 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Form validation for sign up
-    const signupForm = document.getElementById('signupForm');
-    if (signupForm) {
-        signupForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+    // const signupForm = document.getElementById('signupForm');
+    // if (signupForm) {
+    //     signupForm.addEventListener('submit', function(e) {
+    //         e.preventDefault();
             
-            // Get form values
-            const email = document.getElementById('signupEmail').value;
-            const phone = document.getElementById('signupPhone').value;
-            const password = document.getElementById('signupPassword').value;
-            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+    //         // Get form values
+    //         const email = document.getElementById('signupEmail').value;
+    //         const phone = document.getElementById('signupPhone').value;
+    //         const password = document.getElementById('signupPassword').value;
+    //         const confirmPassword = document.getElementById('signupConfirmPassword').value;
             
-            // Reset error messages
-            document.getElementById('signupEmailError').style.display = 'none';
-            document.getElementById('signupPhoneError').style.display = 'none';
-            document.getElementById('signupPasswordError').style.display = 'none';
-            document.getElementById('signupConfirmPasswordError').style.display = 'none';
+    //         // Reset error messages
+    //         document.getElementById('signupEmailError').style.display = 'none';
+    //         document.getElementById('signupPhoneError').style.display = 'none';
+    //         document.getElementById('signupPasswordError').style.display = 'none';
+    //         document.getElementById('signupConfirmPasswordError').style.display = 'none';
             
-            let isValid = true;
+    //         let isValid = true;
             
-            // Email validation
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|rguktong\.ac\.in)$/;
-            if (!emailRegex.test(email)) {
-                document.getElementById('signupEmailError').textContent = 'Please enter a valid email from gmail.com or rguktong.ac.in.';
-                document.getElementById('signupEmailError').style.display = 'block';
-                isValid = false;
-            }
+    //         // Email validation
+    //         const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|rguktong\.ac\.in)$/;
+    //         if (!emailRegex.test(email)) {
+    //             document.getElementById('signupEmailError').textContent = 'Please enter a valid email from gmail.com or rguktong.ac.in.';
+    //             document.getElementById('signupEmailError').style.display = 'block';
+    //             isValid = false;
+    //         }
             
-            // Phone validation
-            const phoneRegex = /^[6-9]\d{9}$/;
-            if (phone && !phoneRegex.test(phone)) {
-                document.getElementById('signupPhoneError').textContent = 'Please enter a valid 10-digit phone number starting with 6, 7, 8, or 9.';
-                document.getElementById('signupPhoneError').style.display = 'block';
-                isValid = false;
-            }
+    //         // Phone validation
+    //         const phoneRegex = /^[6-9]\d{9}$/;
+    //         if (phone && !phoneRegex.test(phone)) {
+    //             document.getElementById('signupPhoneError').textContent = 'Please enter a valid 10-digit phone number starting with 6, 7, 8, or 9.';
+    //             document.getElementById('signupPhoneError').style.display = 'block';
+    //             isValid = false;
+    //         }
             
-            // Password validation
-            if (password.length < 8) {
-                document.getElementById('signupPasswordError').textContent = 'Password must be at least 8 characters long.';
-                document.getElementById('signupPasswordError').style.display = 'block';
-                isValid = false;
-            }
+    //         // Password validation
+    //         if (password.length < 8) {
+    //             document.getElementById('signupPasswordError').textContent = 'Password must be at least 8 characters long.';
+    //             document.getElementById('signupPasswordError').style.display = 'block';
+    //             isValid = false;
+    //         }
             
-            // Confirm password
-            if (password !== confirmPassword) {
-                document.getElementById('signupConfirmPasswordError').textContent = 'Passwords do not match.';
-                document.getElementById('signupConfirmPasswordError').style.display = 'block';
-                isValid = false;
-            }
+    //         // Confirm password
+    //         if (password !== confirmPassword) {
+    //             document.getElementById('signupConfirmPasswordError').textContent = 'Passwords do not match.';
+    //             document.getElementById('signupConfirmPasswordError').style.display = 'block';
+    //             isValid = false;
+    //         }
             
-            // Terms checkbox
-            if (!document.getElementById('agreeTerms').checked) {
-                alert('You must agree to the Terms & Privacy Policy.');
-                isValid = false;
-            }
+    //         // Terms checkbox
+    //         if (!document.getElementById('agreeTerms').checked) {
+    //             alert('You must agree to the Terms & Privacy Policy.');
+    //             isValid = false;
+    //         }
             
-            // If form is valid, proceed
-            if (isValid) {
-                alert('Account created successfully! Redirecting to profile setup...');
-                window.location.href = 'profile-1.html';
-            }
-        });
-    }
+    //         // If form is valid, proceed
+    //         if (isValid) {
+    //             alert('Account created successfully! Redirecting to profile setup...');
+    //             window.location.href = 'profile-1.html';
+    //         }
+    //     });
+    // }
     
     // Form validation for sign in
     const loginForm = document.getElementById('loginForm');

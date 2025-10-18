@@ -14,6 +14,24 @@ const UserSchema = new Schema({
   phoneNumber: {
     type: String
   },
+  // --- ADD THESE NEW FIELDS ---
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: {
+    type: String
+  },
+  emailVerificationTokenExpires: {
+    type: Date
+  },
+  // --- END OF NEW FIELDS ---
+  passwordResetToken: {
+    type: String
+  },
+  passwordResetTokenExpires: {
+    type: Date
+  },
   profile: {
     fullName: String,
     username: String,
