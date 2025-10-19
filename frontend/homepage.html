@@ -925,7 +925,7 @@ function sendMessage() {
               </section>
 
 
-              <!-- 3. Recent Chats -->`3
+              <!-- 3. Recent Chats -->
               <section class="recent-chats card">
                 <h3>Recent Chats</h3>
                 <ul id="recentChatsList"></ul>
@@ -1120,6 +1120,10 @@ function sendMessage() {
                     <input type="text" class="form-control profile-input" id="fullName" name="name" readonly>
                   </div>
                   <div class="col-md-6 mb-3">
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control profile-input" id="username" readonly>
+                  </div>
+                  <div class="col-md-6 mb-3">
                     <label class="form-label">Email</label>
                     <input type="email" name="email" class="form-control profile-input" id="email" readonly>
                   </div>
@@ -1133,7 +1137,8 @@ function sendMessage() {
                     <input type="text" class="form-control profile-input" id="location" name="location" readonly>
                   </div>
 
-                  <div class="col-12 mb-3">
+
+                  <div class="col-md-6 mb-3">
                     <label class="form-label">Bio</label>
                     <textarea class="form-control profile-input" id="bio" rows="3" name="bio" readonly></textarea>
                   </div>

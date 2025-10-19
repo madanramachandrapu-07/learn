@@ -316,11 +316,20 @@ function goBack() {
     }
 }
 
+/**
+ * Logs the user out by clearing credentials from local storage
+ * and redirecting to the landing page.
+ */
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
-        alert('Logging out... Redirecting to landing page.');
-        // In a real app, this would redirect to the login page
-        window.location.href = 'landing.html'; // You'd need to create this
+        
+        // 1. Clear the user's token and ID
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId'); 
+        
+        localStorage.removeItem('openChatUserId');
+
+        window.location.href = 'newindex.html';
     }
 }
 
@@ -552,130 +561,7 @@ function createSkillListItem({ skillName, skillLevel, categoriesText }) {
 
 
 // Dashboard functionality
-async function addSkill(kind) {
-    const lower = kind.toLowerCase();
-    const inputEl = document.getElementById(lower === 'offered' ? 'skillsOfferedInput' : 'skillsWantedInput');
-    const levelEl = document.getElementById(lower === 'offered' ? 'skillLevelOffered' : 'skillLevelWanted');
-    const tagifyInst = inputEl?.tagify || null;
-    const tags = (tagifyInst && Array.isArray(tagifyInst.value)) ? tagifyInst.value : [];
-    let skillName = tags.length ? tags[0].value.trim() : (inputEl?.value.trim() || '');
-    const skillLevel = levelEl?.value.trim() || '';
-    const categoryName = lower === 'offered' ? 'offered_category' : 'wanted_category';
-    const categories = Array.from(document.querySelectorAll(`input[name="${categoryName}"]:checked`)).map(cb => cb.value);
 
-    if (!skillName) { alert('Please enter or select a skill name.'); return; }
-    if (!skillLevel) { alert('Please select a skill level.'); return; }
-    if (categories.length === 0) { alert('Please select at least one category.'); return; }
-
-    const newSkill = { skillName, level: skillLevel, category: categories };
-
-    if (lower === 'offered') {
-        userData.profile.skillsOffered.push(newSkill);
-    } else {
-        userData.profile.skillsToLearn.push(newSkill);
-    }
-
-    try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/profile', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                "x-auth-token": token
-            },
-            body: JSON.stringify(userData.profile) // ✅ Send correct shape
-        });
-
-        if (!res.ok) throw new Error('Failed to save skill');
-        const updatedUser = await res.json();
-        userData.profile = updatedUser.profile;
-
-        updateSkillsDisplay();
-
-        if (tagifyInst?.removeAllTags) tagifyInst.removeAllTags();
-        else if (inputEl) inputEl.value = '';
-        if (levelEl) levelEl.value = '';
-        document.querySelectorAll(`input[name="${categoryName}"]:checked`).forEach(cb => cb.checked = false);
-
-        showNotification(`${skillName} added successfully!`, 'success');
-    } catch (err) {
-        console.error(err);
-        alert('Error adding skill. Please try again.');
-    }
-}
-
-
-
-
-
-
-
-// Fetch and display skills from backend
-async function updateSkillsDisplay() {
-    try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/users/me', {
-            method: 'GET',
-            headers: {
-                "x-auth-token": token,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!res.ok) {
-            console.error('Failed to fetch skills from backend');
-            return;
-        }
-
-        const data = await res.json();
-
-        // ✅ Use the real profile fields from backend
-        userData.profile.skillsOffered = data.profile?.skillsOffered || [];
-        userData.profile.skillsToLearn = data.profile?.skillsToLearn || [];
-
-        const teachingSkillsContainer = document.getElementById('skillsOfferedList');
-        const learningSkillsContainer = document.getElementById('skillsWantedList');
-
-        teachingSkillsContainer.innerHTML = '';
-        userData.profile.skillsOffered.forEach(skillObj => {
-            const li = createSkillListItem({
-                skillName: skillObj.skillName,
-                skillLevel: skillObj.level,
-                categoriesText: (skillObj.category || []).join(', ')
-            });
-            teachingSkillsContainer.appendChild(li);
-        });
-
-        learningSkillsContainer.innerHTML = '';
-        userData.profile.skillsToLearn.forEach(skillObj => {
-            const li = createSkillListItem({
-                skillName: skillObj.skillName,
-                skillLevel: skillObj.level,
-                categoriesText: (skillObj.category || []).join(', ')
-            });
-            learningSkillsContainer.appendChild(li);
-        });
-
-    } catch (error) {
-        console.error('Error updating skills display:', error);
-    }
-}
-
-
-
-
-
-function removeSkill(type, skillName) {
-    if (confirm(`Remove ${skillName} from your skills?`)) {
-        if (type === 'teach') {
-            userData.teachingSkills = userData.teachingSkills.filter(skill => skill !== skillName);
-        } else {
-            userData.learningSkills = userData.learningSkills.filter(skill => skill !== skillName);
-        }
-        showNotification(`${skillName} removed from your skills.`, 'info');
-        updateSkillsDisplay();
-    }
-}
 
 // Messages functionality
 // function initializeMessages() {
@@ -1187,8 +1073,8 @@ document.addEventListener("click", async (e) => {
 });
 
 // 1. Initialize the modal instance ONCE in the global scope.
-const profileModalEl = document.getElementById("profileModal");
-const profileModalInstance = new bootstrap.Modal(profileModalEl);
+// const profileModalEl = document.getElementById("profileModal");
+// const profileModalInstance = new bootstrap.Modal(profileModalEl);
 
 // Helper function to prevent XSS attacks from user-generated content
 function escapeHtml(unsafe) {
@@ -2122,7 +2008,7 @@ async function loadMessages(userId) {
 
       // Handle file attachments
       if (msg.fileUrl) {
-        const filePath = `http://localhost:5000${msg.fileUrl}`;
+        const filePath = `${msg.fileUrl}`;
         const fileName = msg.fileName || "file";
 
         switch (msg.fileType) {
@@ -2393,203 +2279,75 @@ function parseJwt(token) {
 //     }
 // }
 
-function toggleEditMode() {
-    editMode = !editMode;
-    const editBtn = document.getElementById('editProfileBtn');
-    const editButtons = document.getElementById('editButtons');
-    const profileInputs = document.querySelectorAll('#profileSection input, #profileSection textarea, #profileSection select');
 
-    if (editMode) {
-        editBtn.innerHTML = '<i class="fas fa-times me-2"></i>Cancel Edit';
-        editBtn.className = 'btn btn-secondary';
-        editButtons.style.display = 'block';
+// ========================================================================
+// PROFILE EDITING & DATA FUNCTIONS (Corrected)
+// ========================================================================
 
-        profileInputs.forEach(input => {
-            if (input.id !== 'username') {
-                input.removeAttribute('readonly');
-                input.removeAttribute('disabled');
-            }
-        });
+/**
+ * Populates the entire profile form from a user object.
+ * This is the single source of truth for displaying profile data.
+ * @param {object} user - The full user object (matching User.js schema)
+ */
+function populateProfileForm(user) {
+  if (!user) {
+    console.error("populateProfileForm: No user data provided.");
+    return;
+  }
 
-        // Show skill edit fields
-        document.querySelectorAll('.skill-edit-fields').forEach(el => el.style.display = 'block');
+  const profile = user.profile || {};
 
-        // Init Tagify for skill inputs
-        initTagify();
+  try {
+    // --- Basic Info Tab ---
+    document.getElementById('fullName').value = profile.fullName || '';
+    document.getElementById('username').value = profile.username || '';
+    document.getElementById('email').value = user.email || '';
+    document.getElementById('phone').value = user.phoneNumber || '';
+    document.getElementById('location').value = profile.location || '';
+    document.getElementById('bio').value = profile.bio || '';
 
-        // Attach add skill events
-        document.getElementById('addOfferedBtn').onclick = () => addSkill('Offered');
-        document.getElementById('addWantedBtn').onclick = () => addSkill('Wanted');
+    // --- Social Links ---
+    const social = profile.socialLinks || {};
+    document.querySelector('input[name="linkedin"]').value = social.linkedin || '';
+    // Map 'github' from schema to 'portfolio' input in HTML
+    document.querySelector('input[name="portfolio"]').value = social.github || '';
 
-    } else {
-        editBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Edit Profile';
-        editBtn.className = 'btn btn-primary';
-        editButtons.style.display = 'none';
+    // --- Skills Tab ---
+    populateSkillsList('skillsOfferedList', profile.skillsOffered || []);
+    populateSkillsList('skillsWantedList', profile.skillsToLearn || []);
 
-        profileInputs.forEach(input => {
-            if (input.tagName.toLowerCase() === 'textarea') {
-                input.setAttribute('readonly', 'readonly');
-            } else if (['checkbox', 'radio'].includes(input.type) || input.tagName.toLowerCase() === 'select') {
-                input.setAttribute('disabled', 'disabled');
-            } else {
-                input.setAttribute('readonly', 'readonly');
-            }
-        });
+    // --- Availability Tab ---
+    const avail = profile.availability || {};
+    const days = avail.days || [];
+    document.querySelectorAll('input[name="availabilityDays"]').forEach(cb => {
+      cb.checked = days.includes(cb.value);
+    });
 
-        // Hide skill edit fields
-        document.querySelectorAll('.skill-edit-fields').forEach(el => el.style.display = 'none');
-    }
+    // Handle time range
+    const time = avail.time || "";
+    const [start, end] = time.split(' - ').map(t => t.trim());
+    document.getElementById('availabilityStart').value = start || '';
+    document.getElementById('availabilityEnd').value = end || '';
+
+    document.getElementById('availabilityTimezone').value = avail.timezone || '';
+
+    // --- Profile Header (Left Card) ---
+    document.getElementById('displayName').textContent = profile.fullName || 'Unnamed User';
+    document.querySelector('.username').textContent = profile.username ? `@${profile.username}` : '';
+
+  } catch (err) {
+    console.error("Error populating profile form:", err);
+  }
 }
 
-
-async function saveProfile() {
-    const updatedProfile = {
-        fullName: document.getElementById('fullName').value,
-        username: document.getElementById('username') ? document.getElementById('username').value : undefined,
-        phoneNumber: document.getElementById('phone').value,
-        location: document.getElementById('location').value,
-        bio: document.getElementById('bio').value,
-        // Add more fields if needed (LinkedIn, Portfolio, etc.)
-        socialLinks: {
-            linkedin: document.querySelector('input[name="linkedin"]').value,
-            portfolio: document.querySelector('input[name="portfolio"]').value
-        }
-    };
-
-    try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/profile', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                  "x-auth-token": token
-            },
-            body: JSON.stringify(updatedProfile)
-        });
-
-        if (!res.ok) throw new Error('Failed to update profile');
-
-        const updatedUser = await res.json();
-
-        // Update local userData
-        userData = updatedUser.profile || userData;
-
-        // Update display name
-        document.getElementById('displayName').textContent = updatedProfile.fullName;
-        document.getElementById('userName').textContent = updatedProfile.fullName;
-
-        showNotification('Profile updated successfully!', 'success');
-        toggleEditMode();
-
-    } catch (err) {
-        console.error(err);
-        alert('Error updating profile. Please try again.');
-    }
-}
-
-
-
-function cancelEdit() {
-    // Reset form to original values
-    document.getElementById('fullName').value = userData.name;
-    document.getElementById('email').value = userData.email;
-    document.getElementById('phone').value = userData.phone;
-    document.getElementById('location').value = userData.location;
-    document.getElementById('bio').value = userData.bio;
-    
-    toggleEditMode();
-}
-
-function updateProfileSkillsTags() {
-    const teachingSkillsTags = document.getElementById('teachingSkillsTags');
-    const learningSkillsTags = document.getElementById('learningSkillsTags');
-    
-    if (teachingSkillsTags) {
-        teachingSkillsTags.innerHTML = userData.teachingSkills.map(skill => `
-            <span class="skill-tag">
-                ${skill} 
-                <button class="remove-skill" onclick="removeSkill('teach', '${skill}')" style="display: ${editMode ? 'inline-block' : 'none'};">×</button>
-            </span>
-        `).join('') + `<button class="add-skill-btn" onclick="addProfileSkill('teach')" style="display: ${editMode ? 'inline-block' : 'none'};">+ Add Skill</button>`;
-    }
-    
-    if (learningSkillsTags) {
-        learningSkillsTags.innerHTML = userData.learningSkills.map(skill => `
-            <span class="skill-tag">
-                ${skill} 
-                <button class="remove-skill" onclick="removeSkill('learn', '${skill}')" style="display: ${editMode ? 'inline-block' : 'none'};">×</button>
-            </span>
-        `).join('') + `<button class="add-skill-btn" onclick="addProfileSkill('learn')" style="display: ${editMode ? 'inline-block' : 'none'};">+ Add Skill</button>`;
-    }
-}
-
-function addProfileSkill(type) {
-    addSkill(type);
-}
-
-function deleteAccount() {
-    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-        if (confirm('This will permanently delete all your data. Are you absolutely sure?')) {
-            alert('Account deletion initiated. You will be redirected to the home page.');
-        }
-    }
-}
-
-// Utility functions
-function showNotification(message, type = 'info') {
-    // Remove existing notification
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible`;
-    notification.style.cssText = `
-        position: fixed;
-        top: 100px;
-        right: 20px;
-        z-index: 1050;
-        min-width: 300px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        border-radius: 8px;
-    `;
-    
-    notification.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, 5000);
-}
-
-// Initialize skills display on page load
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(() => {
-        updateSkillsDisplay();
-    }, 500);
-});
-
-
-
-/*Profile fetcher (merged from profile-1.html)*/
-function getToken() {
-  return localStorage.getItem('token');
-}
-
+/**
+ * Fetches the user's profile from the API, stores it globally,
+ * and calls populateProfileForm to display it.
+ */
 async function fetchAndPopulateProfile() {
   const token = getToken();
   if (!token) {
-    // not logged in — do nothing
-    console.warn('fetchAndPopulateProfile: no token found in localStorage.');
+    console.warn('fetchAndPopulateProfile: no token found.');
     return;
   }
 
@@ -2602,113 +2360,382 @@ async function fetchAndPopulateProfile() {
       }
     });
 
+    if (!response.ok) {
+      throw new Error(`Failed to fetch profile: ${response.status}`);
+    }
+
     const user = await response.json();
 
-    if (response.ok) {
-      // Populate the form fields with user data
-      const nameInput = document.querySelector('input[name="name"]');
-      if (nameInput) nameInput.value = user.profile?.fullName || '';
-
-      const usernameInput = document.querySelector('input[name="username"]');
-      if (usernameInput) usernameInput.value = user.profile?.username || '';
-
-      const emailInput = document.querySelector('input[name="email"]');
-      if (emailInput) emailInput.value = user.email || '';
-
-      const phoneInput = document.querySelector('input[name="phone"]');
-      if (phoneInput) phoneInput.value = user.phoneNumber || '';
-
-      const locationInput = document.querySelector('input[name="location"]');
-      if (locationInput) locationInput.value = user.profile?.location || '';
-
-      const bioTextarea = document.querySelector('textarea[name="bio"]');
-      if (bioTextarea) bioTextarea.value = user.profile?.bio || '';
-
-      // Social links
-      const linkedinInput = document.querySelector('input[name="linkedin"]');
-      if (linkedinInput) linkedinInput.value = (user.profile?.socialLinks?.linkedin || user.profile?.linkedin || user.socialLinks?.linkedin || '');
-
-      const portfolioInput = document.querySelector('input[name="portfolio"]');
-      if (portfolioInput) portfolioInput.value = (user.profile?.socialLinks?.github || user.profile?.github || user.socialLinks?.github || user.profile?.portfolio || '');
-
-      // Skills Offered
-      const skillsOffered = Array.isArray(user.profile?.skillsOffered) && user.profile.skillsOffered.length ? user.profile.skillsOffered : (Array.isArray(user.skillsOffered) ? user.skillsOffered : []);
-      const skillsWanted = Array.isArray(user.profile?.skillsToLearn) && user.profile.skillsToLearn.length ? user.profile.skillsToLearn : (Array.isArray(user.skillsToLearn) ? user.skillsToLearn : []);
-
-      populateSkillsList('skillsOfferedList', skillsOffered);
-      populateSkillsList('skillsWantedList', skillsWanted);
-
-      // Availability
-      if (user.profile?.availability) {
-        const days = user.profile?.availability.days || [];
-        document.querySelectorAll('input[name="availabilityDays"]').forEach(cb => {
-            cb.checked = days.includes(cb.value);
-        });
-
-        if (user.profile?.availability.time) {
-            const [start, end] = user.profile?.availability.time.split(' - ').map(t => t.trim());
-            const startEl = document.getElementById('availabilityStart');
-            const endEl = document.getElementById('availabilityEnd');
-            if (startEl) startEl.value = start || '';
-            if (endEl) endEl.value = end || '';
-        }
-
-        const tzEl = document.getElementById('availabilityTimezone');
-        if (tzEl) tzEl.value = user.profile?.availability.timezone || '';
-        }
-
-      // Update visible name display if exists
-      const displayNameEl = document.getElementById('displayName') || document.querySelector('.profile-card h3');
-      if (displayNameEl) displayNameEl.textContent = user.profile?.fullName || user.profile?.fullname || user.email || displayNameEl.textContent;
-
-      const usernameLabel = document.querySelector('.username') || document.getElementById('userName');
-      if (usernameLabel) usernameLabel.textContent = user.profile?.username ? `@${user.profile.username}` : (user.username || usernameLabel.textContent);
-
-      // Update dashboard skill lists
-      // If updateSkillsDisplay exists, call it after populating skills
-      if (typeof updateSkillsDisplay === 'function') {
-        try { updateSkillsDisplay(); } catch (e) { /* ignore */ }
-      }
-    } else {
-      console.error('fetchAndPopulateProfile: response not ok', user);
+    // CRITICAL: Store fetched data in the global userData variable
+    window.userData = user;
+    if (!window.userData.profile) {
+      window.userData.profile = {}; // Ensure profile object exists
     }
+
+    // Populate the form with the new data
+    populateProfileForm(window.userData);
+
   } catch (err) {
     console.error('fetchAndPopulateProfile error', err);
   }
 }
 
+/**
+ * Populates a <ul> with skill items.
+ * @param {string} listId - The ID of the <ul> element.
+ * @param {Array} skillsArray - The array of skill objects.
+ */
 function populateSkillsList(listId, skillsArray) {
   const listEl = document.getElementById(listId);
-  if (!listEl) return;
+  if (!listEl) {
+    console.warn(`populateSkillsList: Element with ID "${listId}" not found.`);
+    return;
+  }
 
-  // if list is a div container, clear it
-  listEl.innerHTML = '';
+  listEl.innerHTML = ''; // Clear existing skills
 
-  if (!Array.isArray(skillsArray)) return;
+  if (!Array.isArray(skillsArray) || skillsArray.length === 0) {
+    listEl.innerHTML = `<li class="text-muted small">No skills listed.</li>`;
+    return;
+  }
 
   skillsArray.forEach(skill => {
-    // normalize skill object
-    let skillName = '';
-    let level = '';
-    let categoryArr = [];
+    const skillName = skill.skillName || 'Unknown Skill';
+    const level = skill.level || '';
+    const categoryArr = skill.category || [];
 
-    if (typeof skill === 'string') {
-      skillName = skill;
-    } else if (skill && typeof skill === 'object') {
-      skillName = skill.skillName || skill.name || skill.skill || '';
-      level = skill.level || skill.skillLevel || '';
-      if (Array.isArray(skill.category)) categoryArr = skill.category;
-      else if (skill.category) categoryArr = [skill.category];
+    const catsText = categoryArr.length ? ` • ${categoryArr.join(', ')}` : '';
+    const levelText = level ? ` (${level})` : '';
+
+    const li = document.createElement('li');
+    li.className = 'skill-item-display'; // Use a class for styling
+    li.innerHTML = `
+      <span class="skill-name">${escapeHtml(skillName)}</span>
+      <span class="skill-level">${escapeHtml(levelText)}</span>
+      <span class="skill-categories">${escapeHtml(catsText)}</span>
+      <button type="button" class="remove-skill-btn" data-skill-name="${escapeHtml(skillName)}" style="display: none;">×</button>
+    `;
+
+    listEl.appendChild(li);
+  });
+
+  // Re-attach remove-skill-btn listeners if in edit mode
+  if (editMode) {
+    attachRemoveSkillListeners();
+    document.querySelectorAll('.remove-skill-btn').forEach(btn => {
+      btn.style.display = 'inline-block';
+    });
+  }
+}
+
+/**
+ * Toggles the profile page between view and edit modes.
+ */
+function toggleEditMode() {
+  editMode = !editMode;
+  const editBtn = document.getElementById('editProfileBtn');
+  const editButtons = document.getElementById('editButtons');
+  const profileInputs = document.querySelectorAll('#profileSection input, #profileSection textarea, #profileSection select');
+
+  if (editMode) {
+    // --- ENTERING EDIT MODE ---
+    editBtn.innerHTML = '<i class="fas fa-times me-2"></i>Cancel Edit';
+    editBtn.className = 'btn btn-secondary';
+    editButtons.style.display = 'block';
+
+    profileInputs.forEach(input => {
+      // Don't allow editing email
+      if (input.id !== 'email') {
+        input.removeAttribute('readonly');
+        input.removeAttribute('disabled');
+      }
+    });
+
+    // Show skill add fields
+    document.querySelectorAll('.skill-edit-fields').forEach(el => el.style.display = 'block');
+    // Show skill remove buttons
+    document.querySelectorAll('.remove-skill-btn').forEach(btn => btn.style.display = 'inline-block');
+
+    // Init Tagify for skill inputs
+    initTagify();
+
+    // Attach add/remove skill events
+    document.getElementById('addOfferedBtn').onclick = () => addSkill('Offered');
+    document.getElementById('addWantedBtn').onclick = () => addSkill('Wanted');
+    attachRemoveSkillListeners();
+
+  } else {
+    // --- EXITING EDIT MODE ---
+    editBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Edit Profile';
+    editBtn.className = 'btn btn-primary';
+    editButtons.style.display = 'none';
+
+    profileInputs.forEach(input => {
+      if (input.tagName.toLowerCase() === 'textarea') {
+        input.setAttribute('readonly', 'readonly');
+      } else if (['checkbox', 'radio'].includes(input.type) || input.tagName.toLowerCase() === 'select') {
+        input.setAttribute('disabled', 'disabled');
+      } else {
+        input.setAttribute('readonly', 'readonly');
+      }
+    });
+
+    // Hide skill add/remove UI
+    document.querySelectorAll('.skill-edit-fields').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.remove-skill-btn').forEach(btn => btn.style.display = 'none');
+  }
+}
+
+/**
+ * Saves the "Basic Info" and "Availability" tabs.
+ * Skills are saved separately by addSkill/removeSkill.
+ */
+async function saveProfile() {
+  // 1. Collect Availability Data
+  const availableDays = Array.from(document.querySelectorAll('input[name="availabilityDays"]:checked'))
+    .map(cb => cb.value);
+
+  const startTime = document.getElementById('availabilityStart').value;
+  const endTime = document.getElementById('availabilityEnd').value;
+  const timeString = (startTime && endTime) ? `${startTime} - ${endTime}` : "";
+
+  const availability = {
+    days: availableDays,
+    time: timeString,
+    timezone: document.getElementById('availabilityTimezone').value
+  };
+
+  // 2. Collect Basic Info Data
+  const updatedProfile = {
+    fullName: document.getElementById('fullName').value,
+    username: document.getElementById('username').value,
+    phoneNumber: document.getElementById('phone').value,
+    location: document.getElementById('location').value,
+    bio: document.getElementById('bio').value,
+    socialLinks: {
+      linkedin: document.querySelector('input[name="linkedin"]').value,
+      // Map 'portfolio' input (HTML) back to 'github' (Schema)
+      github: document.querySelector('input[name="portfolio"]').value
+    },
+    availability: availability, // Add availability object
+    // so the server doesn't erase them.
+    skillsOffered: window.userData.profile.skillsOffered || [],
+    skillsToLearn: window.userData.profile.skillsToLearn || []
+  };
+
+  // 3. Send API Request
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        "x-auth-token": token
+      },
+      // Send ONLY the fields we are updating
+      body: JSON.stringify(updatedProfile)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || 'Failed to update profile');
     }
 
-    // create element (li or div)
-    const item = document.createElement('div');
-    item.className = 'skill-item-small';
-    const catsText = categoryArr.length ? ` — ${categoryArr.join(', ')}` : '';
-    const levelText = level ? ` (${level})` : '';
-    item.textContent = `${skillName}${levelText}${catsText}`;
-    listEl.appendChild(item);
+    const updatedUser = await res.json();
+
+    // 4. Update global state and exit edit mode
+    window.userData = updatedUser; // Update global data with response
+    populateProfileForm(window.userData); // Re-populate form with saved data
+    //showNotification('Profile updated successfully!', 'success');
+    toggleEditMode(); // Exit edit mode
+
+  } catch (err) {
+    console.error(err);
+    alert('Error updating profile: ' + err.message);
+  }
+}
+
+/**
+ * Cancels the edit operation by re-populating the form
+ * from the last-saved global userData state.
+ */
+function cancelEdit() {
+  // Reset form to original values by re-populating
+  if (window.userData) {
+    populateProfileForm(window.userData);
+  }
+  toggleEditMode(); // Exit edit mode
+}
+
+/**
+ * Adds a new skill to the user's profile and saves immediately.
+ * @param {string} kind - 'Offered' or 'Wanted'
+ */
+async function addSkill(kind) {
+  const lower = kind.toLowerCase();
+  const isOffered = lower === 'offered';
+
+  // 1. Get values from form
+  const inputEl = document.getElementById(isOffered ? 'skillsOfferedInput' : 'skillsWantedInput');
+  const levelEl = document.getElementById(isOffered ? 'skillLevelOffered' : 'skillLevelWanted');
+  const categoryName = isOffered ? 'offered_category' : 'wanted_category';
+  const categories = Array.from(document.querySelectorAll(`input[name="${categoryName}"]:checked`)).map(cb => cb.value);
+
+  const tagifyInst = inputEl?.tagify || null;
+  const tags = (tagifyInst && Array.isArray(tagifyInst.value)) ? tagifyInst.value : [];
+  let skillName = tags.length ? tags[0].value.trim() : (inputEl?.value.trim() || '');
+  const skillLevel = levelEl?.value.trim() || '';
+
+  // 2. Validate
+  if (!skillName) {
+    alert('Please enter or select a skill name.');
+    return;
+  }
+  if (!skillLevel) {
+    alert('Please select a skill level.');
+    return;
+  }
+  if (categories.length === 0) {
+    alert('Please select at least one category.');
+    return;
+  }
+
+  // 3. Ensure global data is loaded
+  if (!window.userData || !window.userData.profile) {
+    alert('Error: User data not loaded. Please refresh.');
+    return;
+  }
+
+  // 4. Create new skill and add to LOCAL copy
+  const newSkill = {
+    skillName,
+    level: skillLevel,
+    category: categories
+  };
+  const skillArray = isOffered ? window.userData.profile.skillsOffered : window.userData.profile.skillsToLearn;
+
+  // Check for duplicates
+  if (skillArray.find(s => s.skillName.toLowerCase() === skillName.toLowerCase())) {
+    alert('You have already added this skill.');
+    return;
+  }
+
+  skillArray.push(newSkill);
+
+  // 5. Send API request with the *entire* updated profile
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        "x-auth-token": token
+      },
+      // Send the entire profile object
+      body: JSON.stringify(window.userData.profile)
+    });
+
+    if (!res.ok) {
+      // Rollback: remove skill from local array if save failed
+      skillArray.pop();
+      throw new Error('Failed to save skill');
+    }
+
+    const updatedUser = await res.json();
+    window.userData.profile = updatedUser.profile; // Update global data
+
+    // 6. Update UI
+    // Re-populate just the skill lists
+    populateSkillsList('skillsOfferedList', window.userData.profile.skillsOffered || []);
+    populateSkillsList('skillsWantedList', window.userData.profile.skillsToLearn || []);
+
+    // 7. Clear inputs
+    if (tagifyInst?.removeAllTags) tagifyInst.removeAllTags();
+    else if (inputEl) inputEl.value = '';
+    if (levelEl) levelEl.value = '';
+    document.querySelectorAll(`input[name="${categoryName}"]:checked`).forEach(cb => cb.checked = false);
+
+    //showNotification(`${skillName} added successfully!`, 'success');
+  } catch (err) {
+    console.error(err);
+    alert('Error adding skill. Please try again.');
+  }
+}
+
+/**
+ * Attaches click listeners to all '.remove-skill-btn' buttons.
+ */
+function attachRemoveSkillListeners() {
+  document.querySelectorAll('.remove-skill-btn').forEach(btn => {
+    // Remove old listener to prevent duplicates
+    btn.onclick = null;
+    btn.onclick = (e) => {
+      const skillName = e.target.closest('button').dataset.skillName;
+      const listId = e.target.closest('ul').id;
+      const type = (listId === 'skillsOfferedList') ? 'Offered' : 'Wanted';
+      removeSkill(type, skillName);
+    };
   });
+}
+
+/**
+ * Removes a skill from the user's profile and saves immediately.
+ * @param {string} type - 'Offered' or 'Wanted'
+ * @param {string} skillName - The name of the skill to remove.
+ */
+async function removeSkill(type, skillName) {
+  if (!confirm(`Are you sure you want to remove ${skillName}?`)) {
+    return;
+  }
+
+  if (!window.userData || !window.userData.profile) {
+    alert('Error: User data not loaded.');
+    return;
+  }
+
+  const isOffered = type.toLowerCase() === 'offered';
+  let skillArray = isOffered ? window.userData.profile.skillsOffered : window.userData.profile.skillsToLearn;
+
+  // Find and remove from local array
+  const originalSkillArray = [...skillArray];
+  skillArray = skillArray.filter(s => s.skillName.toLowerCase() !== skillName.toLowerCase());
+
+  if (isOffered) {
+    window.userData.profile.skillsOffered = skillArray;
+  } else {
+    window.userData.profile.skillsToLearn = skillArray;
+  }
+
+  // Send API request
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        "x-auth-token": token
+      },
+      body: JSON.stringify(window.userData.profile)
+    });
+
+    if (!res.ok) {
+      // Rollback: restore original array
+      if (isOffered) window.userData.profile.skillsOffered = originalSkillArray;
+      else window.userData.profile.skillsToLearn = originalSkillArray;
+      throw new Error('Failed to remove skill');
+    }
+
+    const updatedUser = await res.json();
+    window.userData.profile = updatedUser.profile; // Update global data
+
+    // Update UI
+    populateSkillsList(isOffered ? 'skillsOfferedList' : 'skillsWantedList', skillArray);
+    //showNotification(`${skillName} removed successfully.`, 'info');
+
+  } catch (err) {
+    console.error(err);
+    alert('Error removing skill. Please try again.');
+  }
 }
 
 
@@ -2759,11 +2786,11 @@ async function loadDashboardProfile() {
 
     // Set Name & Username
     if (nameEl) nameEl.textContent = fullName;
-    if (usernameEl) usernameEl.textContent = username ? `@${username}` : '';
+    if (usernameEl) usernameEl.textContent = username ? `${username}` : '';
 
     // Default avatar (you can replace with actual path if stored later)
     if (avatarEl) {
-      avatarEl.src = 'default-avatar.png';
+      avatarEl.src = './images/user.png';
     }
 
     // Handle Skills Offered & Skills To Learn
@@ -3072,7 +3099,7 @@ async function searchUsers(queryInputId = "searchInput2") {
 
   const token = localStorage.getItem("token");
   try {
-    const response = await fetch(`http://localhost:5000/api/users/search?query=${encodeURIComponent(query)}`, {
+    const response = await fetch(`api/users/search?query=${encodeURIComponent(query)}`, {
       headers: { "x-auth-token": token }
     });
 
