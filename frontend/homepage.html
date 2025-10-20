@@ -470,6 +470,21 @@ function sendMessage() {
                         </div>
                     </div>
 
+
+                    <div class="container mt-4">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 class="mb-0">Recommended Skill Partners</h4>
+                        <a href="#" onclick="loadRecommendedPartners()" class="btn btn-sm btn-outline-primary">
+                          <i class="fas fa-sync-alt"></i> Refresh
+                        </a>
+                      </div>
+                      <p class="text-muted small">Based on the skills you want to learn.</p>
+                      
+                      <div id="recommendedPartnersList" class="row">
+                        <p id="recommendedLoadingMsg">Loading recommendations...</p>
+                      </div>
+                    </div>
+
                     <!-- Recommended Skills -->
                     <!-- <div class="section-header mb-3">
                         <h3><i class="fas fa-star me-2"></i>Recommended Skills for You</h3>
@@ -933,8 +948,19 @@ function sendMessage() {
 
               <!-- 4. Recommended Skill Partners -->
               <section class="recommended-partners card">
-                <h3>Recommended Skill Partners</h3>
-                <div id="recommendedList" class="partners-grid"></div>
+                <div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h4 class="mb-0">Recommended Skill Partners</h4>
+    <a href="#" onclick="loadRecommendedPartners()" class="btn btn-sm btn-outline-primary">
+      <i class="fas fa-sync-alt"></i> Refresh
+    </a>
+  </div>
+  <p class="text-muted small">Based on the skills you want to learn.</p>
+  
+  <div id="dashboard-recommendedPartnersList" class="row">
+    <p id="dashboard-recommendedLoadingMsg">Loading recommendations...</p>
+</div>
+</div>
               </section>
 
               <!-- 5. Activity Timeline -->
@@ -1440,22 +1466,20 @@ function sendMessage() {
   </div>
 </div>
 
-
-<!-- Profile Modal -->
-<!-- Profile Modal -->
-<!-- <div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">User Profile</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="profileModalBody">-->
-        <!-- Profile content will be injected here --><!--
+<!-- View profile -->
+<div id="viewProfileSection" class="content-section" style="display: none;">
+  <div class="container">
+    <h2 id="viewProfileTitle" class="mb-4">User Profile</h2>
+    <div id="viewProfileBody" class="card shadow-sm">
+      <div class="card-body">
+        <p class="text-center">Loading...</p>
       </div>
     </div>
   </div>
-</div> -->
+</div>
+
+
+
 
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>

@@ -17,9 +17,14 @@ const sendEmail = async (options) => {
         from: 'SkillSwap Support <your-email@gmail.com>',
         to: options.email,
         subject: options.subject,
-        text: options.message
+        text: options.message,
+        html: options.html
     };
 
+
+    if (options.message && !options.text) {
+        mailOptions.text = options.message;
+    }
     // 3. Send the email
     await transporter.sendMail(mailOptions);
 };

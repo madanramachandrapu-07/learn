@@ -68,6 +68,9 @@ app.use("/api/users", require("./routes/userRoutes"));
 
 app.use('/api/feedback', require('./routes/feedback'));
 
+
+app.use('/api/admin', require('./routes/admin'));
+
 // Fallback for SPA routing (optional if using frontend framework)
 // app.get("*", (req, res) => {
 //   res.sendFile(path.join(__dirname, "../frontend/index.html"));

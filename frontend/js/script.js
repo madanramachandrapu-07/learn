@@ -476,7 +476,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ... (Your existing handleLogin and other event listeners remain the same) ...
 
-
+    // 👇 PASTE THE parseJwt FUNCTION HERE
+    function parseJwt(token) {
+      try {
+        return JSON.parse(atob(token.split('.')[1]));
+      } catch (e) {
+        return null;
+      }
+    }
 
 
     // Function to handle the login form submission
@@ -505,8 +512,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem("userId", data.user._id);     // 👈 now calls will work
                 localStorage.setItem("username", data.user.username);
                 localStorage.setItem("fullName", data.user.fullName);
-                alert('Login successful! Redirecting to homepage...');
-                window.location.href = 'homepage.html'; // You'll need to create this file
+                const payload = parseJwt(data.token);
+                // 👇 ADD THIS LINE FOR DEBUGGING
+                console.log("TOKEN PAYLOAD:", payload);
+                if (payload && payload.user.role === 'admin') {
+                    window.location.href = 'admin.html'; // Redirect Admin
+                } else {
+                    window.location.href = 'homepage.html'; // Redirect User
+                }
             } else {
                 // Failure: show the error message from the backend
                 alert(data.msg || 'Login failed.');

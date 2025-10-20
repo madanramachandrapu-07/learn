@@ -98,11 +98,11 @@ router.get('/recommended', auth, async (req, res) => {
     if (!skillsToLearn.length) {
       return res.status(200).json([]); // No skills to recommend on
     }
-
+    const regexSkills = skillsToLearn.map(skill => new RegExp(`^${skill}$`, 'i'));
     // Find users who teach any of those skills
     const recommended = await User.find({
       _id: { $ne: req.user.id }, // exclude self
-      "profile.skillsOffered.skillName": { $in: skillsToLearn }
+      "profile.skillsOffered.skillName": { $in: regexSkills }
     }).select("-password");
 
     res.json(recommended);

@@ -14,6 +14,11 @@ const UserSchema = new Schema({
   phoneNumber: {
     type: String
   },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
   // --- ADD THESE NEW FIELDS ---
   isEmailVerified: {
     type: Boolean,

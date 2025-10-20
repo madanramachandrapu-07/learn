@@ -261,6 +261,9 @@ function showSection(sectionName) {
    else if (sectionName === "messages") {
     loadChatSidebar(); // ✅ load sidebar whenever messages opened
   }
+  else if (sectionName === 'viewProfile') {
+    loadViewProfileSection();
+  }
 
 
 }
@@ -715,6 +718,112 @@ function initTagify() {
     });
 }
 
+
+/**
+ * Fetches profile data and populates the dedicated #viewProfileSection
+ */
+async function loadViewProfileSection() {
+  // Get the user ID from where the click handler stored it
+  const userId = localStorage.getItem('viewProfileUserId');
+  const context = localStorage.getItem('viewProfileContext');
+  const token = localStorage.getItem('token');
+
+  const titleEl = document.getElementById("viewProfileTitle");
+  const bodyEl = document.getElementById("viewProfileBody");
+
+  if (!userId) {
+    titleEl.textContent = "Error";
+    bodyEl.innerHTML = '<div class="card-body"><p class="text-danger">No user ID was provided.</p></div>';
+    return;
+  }
+
+  // Set loading state
+  titleEl.textContent = "Loading Profile...";
+  bodyEl.innerHTML = '<div class="card-body"><p class="text-center">Please wait...</p></div>';
+
+  try {
+    // 1. Fetch data
+    const res = await fetch(`api/users/${userId}`, {
+      headers: { "x-auth-token": token }
+    });
+    if (!res.ok) throw new Error('Could not load profile');
+    
+    const user = await res.json();
+    const profile = user.profile || {};
+
+    // 2. Build HTML
+    let content = `
+      <div class="d-flex align-items-center mb-3">
+        <img src="./images/user.png" class="rounded-circle me-3" width="70" height="70"/>
+        <div>
+          <h4 class="mb-0">${escapeHtml(profile.fullName || "Unnamed User")}</h4>
+          <small class="text-muted">@${escapeHtml(profile.username || "unknown")}</small>
+        </div>
+      </div>
+      <p><strong>Bio:</strong> ${escapeHtml(profile.bio || "No bio")}</p>
+      <p><strong>Skills Offered:</strong> ${
+        (profile.skillsOffered || []).map(s => `${escapeHtml(s.skillName)} (${escapeHtml(s.level)})`).join(", ") || "None"
+      }</p>
+      <p><strong>Skills to Learn:</strong> ${
+        (profile.skillsToLearn || []).map(s => `${escapeHtml(s.skillName)}`).join(", ") || "None"
+      }</p>
+    `;
+
+    const avail = profile.availability || {};
+    const availDays = (avail.days || []).join(', ') || "Not specified";
+    const availTime = avail.time || "Not specified";
+    content += `
+      <hr>
+      <p class="mb-1"><strong>Availability:</strong> ${escapeHtml(availDays)}</p>
+      <p class="mb-0"><strong>Time:</strong> ${escapeHtml(availTime)} (${escapeHtml(avail.timezone || "N/A")})</p>
+    `;
+
+    // Only show private contact info if they are a "connection"
+    if (context === "connections") {
+      content += `
+        <hr>
+        <p class="mb-1"><strong>Email:</strong> ${escapeHtml(user.email || "Not provided")}</p>
+        <p class="mb-0"><strong>Phone:</strong> ${escapeHtml(user.phoneNumber || "Not provided")}</p>
+      `;
+    }
+
+    // 3. Populate the card
+    titleEl.textContent = `${escapeHtml(profile.fullName || "User")}'s Profile`;
+    bodyEl.innerHTML = `<div class="card-body">${content}</div>`;
+    
+  } catch (err) {
+    console.error("Error loading profile:", err);
+    titleEl.textContent = "Error";
+    bodyEl.innerHTML = '<div class="card-body"><p class="text-danger">Could not load the user profile. Please try again.</p></div>';
+  }
+}
+
+
+// ==================================
+//      VIEW PROFILE (NEW SECTION) HANDLER
+// ==================================
+document.addEventListener("click", (e) => {
+  const viewBtn = e.target.closest(".view-profile-btn");
+  
+  if (viewBtn) {
+    const userId = viewBtn.dataset.userid;
+    const context = viewBtn.dataset.context;
+
+    if (!userId) {
+      console.error("View Profile button clicked but no userId found.");
+      return;
+    }
+    
+    // 1. Store the ID/Context for the new section to read
+    localStorage.setItem('viewProfileUserId', userId);
+    localStorage.setItem('viewProfileContext', context || 'category'); // Default context
+
+    // 2. Go to the new section. 
+    // Your showSection() function will automatically handle the back button!
+    showSection('viewProfile');
+  }
+});
+
 // function showSection(sectionId) {
 //     document.querySelectorAll('.content-section').forEach(sec => {
 //         sec.style.display = 'none';
@@ -1132,75 +1241,8 @@ function escapeHtml(unsafe) {
 }
 
 // Handle View Profile button click
-document.addEventListener("click", async (e) => {
-  if (e.target.classList.contains("view-profile-btn")) {
-    const userId = e.target.dataset.userid;
-    const context = e.target.dataset.context; // "connections" or "category"
-    const token = localStorage.getItem("token");
-
-    if (!userId) {
-      console.error("❌ View Profile clicked but userId is missing");
-      return;
-    }
-
-    try {
-      const res = await fetch(`api/users/${userId}`, {
-        headers: { "x-auth-token": token }
-      });
-      const user = await res.json();
-      const profile = user.profile || {};
-
-      let content = `
-        <div class="d-flex align-items-center mb-3">
-          <img src="./images/user.png" class="rounded-circle me-3" width="70" height="70"/>
-          <div>
-            <h4 class="mb-0">${profile.fullName || "Unnamed User"}</h4>
-            <small class="text-muted">@${profile.username || "unknown"}</small>
-          </div>
-        </div>
-      `;
-
-      if (context === "connections") {
-        // ✅ Full profile
-        content += `
-          <p><strong>Email:</strong> ${user.email || "Not provided"}</p>
-          <p><strong>Phone:</strong> ${profile.phoneNumber || "Not provided"}</p>
-          <p><strong>Bio:</strong> ${profile.bio || "No bio"}</p>
-          <p><strong>Location:</strong> ${profile.location || "Not specified"}</p>
-          <p><strong>Skills Offered:</strong> ${
-            profile.skillsOffered?.map(s => `${s.skillName} (${s.level})`).join(", ") || "None"
-          }</p>
-          <p><strong>Skills to Learn:</strong> ${
-            profile.skillsToLearn?.map(s => `${s.skillName}`).join(", ") || "None"
-          }</p>
-          <p><strong>Availability days:</strong> ${user.profile?.availability?.days || "Not specified"}<br></p>
-          <p><strong>Availability time:</strong> ${user.profile?.availability?.time || "Not specified"} (${user.profile?.availability?.timezone || "Not specified"})<br></p>
-        `;
-      } else if (context === "category") {
-        // ✅ Limited profile
-        content += `
-          <p><strong>Bio:</strong> ${profile.bio || "No bio"}</p>
-          <p><strong>Skills Offered:</strong> ${
-            profile.skillsOffered?.map(s => `${s.skillName}`).join(", ") || "None"
-          }</p>
-          <p><strong>Skills to Learn:</strong> ${
-            profile.skillsToLearn?.map(s => `${s.skillName}`).join(", ") || "None"
-          }</p>
-          <p><strong>Availability:</strong> ${profile.availability?.days || "Not specified"}, 
-            ${profile.availability?.time || ""} (${profile.availability?.timezone || ""})</p>
-        `;
-      }
-
-      document.getElementById("profileModalBody").innerHTML = content;
-      const modal = new bootstrap.Modal(document.getElementById("profileModal"));
-      modal.show();
-    } catch (err) {
-      console.error("Error loading profile:", err);
-    }
-  }
-});
-
-
+// ==================================
+//      VIEW PROFILE MODAL HANDLER
 
 
 
@@ -3264,12 +3306,179 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+/**
+ * Fetches and displays recommended skill partners on the home dashboard.
+ * Uses the /api/profile/recommended route.
+ */
+async function loadRecommendedPartners() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const container = document.getElementById("recommendedPartnersList");
+  const loadingMsg = document.getElementById("recommendedLoadingMsg");
+  if (!container || !loadingMsg) return;
+
+  // Show loading state
+  loadingMsg.style.display = "block";
+  loadingMsg.textContent = "Loading recommendations...";
+  // Clear old results
+  container.innerHTML = ""; 
+
+  try {
+    const res = await fetch("api/profile/recommended", {
+      headers: { "x-auth-token": token }
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch recommendations");
+    }
+
+    const users = await res.json();
+    loadingMsg.style.display = "none"; // Hide loading message
+
+    if (!users.length) {
+      container.innerHTML = `<p class="text-muted">No recommendations found. Try adding more skills to your "Skills to Learn" list in your profile!</p>`;
+      return;
+    }
+
+    // Create a card for each recommended user
+    users.slice(0, 4).forEach(user => {
+      const profile = user.profile || {};
+      
+      const skillsOffered = (profile.skillsOffered || [])
+        .map(s => `${s.skillName} (${s.level})`)
+        .join(", ") || "No skills listed";
+
+      const card = document.createElement("div");
+      card.className = "col-md-6 col-lg-4 mb-3";
+      card.innerHTML = `
+        <div class="card h-100 shadow-sm">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex align-items-center mb-2">
+              <img src="./images/user.png" width="45" height="45" class="rounded-circle me-2" />
+              <div>
+                <h5 class="card-title mb-0">${profile.fullName || "Unnamed User"}</h5>
+                <small class="text-muted">@${profile.username || "unknown"}</small>
+              </div>
+            </div>
+            
+            <p class="card-text small">
+              <strong>Offers:</strong> ${escapeHtml(skillsOffered)}
+            </p>
+            
+            <div class="mt-auto d-flex justify-content-between">
+              <button class="btn btn-sm btn-outline-primary view-profile-btn" data-context="category" data-userid="${user._id}">
+                View Profile
+              </button>
+              <button class="btn btn-sm btn-success request-btn" data-userid="${user._id}">
+                Request
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Error loading recommended partners:", err);
+    loadingMsg.style.display = "none";
+    container.innerHTML = `<p class="text-danger">Could not load recommendations. Please try again.</p>`;
+  }
+}
+
+/**
+ * Fetches and displays recommended partners for the separate Dashboard section.
+ */
+async function loadDashboardRecommendedPartners() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  // 🌟 THE ONLY CHANGES ARE THESE TWO LINES 🌟
+  const container = document.getElementById("dashboard-recommendedPartnersList");
+  const loadingMsg = document.getElementById("dashboard-recommendedLoadingMsg");
+  // 🌟 END OF CHANGES 🌟
+
+  if (!container || !loadingMsg) return;
+
+  // Show loading state
+  loadingMsg.style.display = "block";
+  loadingMsg.textContent = "Loading recommendations...";
+  // Clear old results
+  container.innerHTML = ""; 
+
+  try {
+    const res = await fetch("api/profile/recommended", {
+      headers: { "x-auth-token": token }
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch recommendations");
+    }
+
+    const users = await res.json();
+    loadingMsg.style.display = "none"; // Hide loading message
+
+    if (!users.length) {
+      container.innerHTML = `<p class="text-muted">No recommendations found. Try adding more skills to your "Skills to Learn" list in your profile!</p>`;
+      return;
+    }
+
+    // Create a card for each recommended user
+    users.slice(0, 4).forEach(user => {
+      const profile = user.profile || {};
+      
+      const skillsOffered = (profile.skillsOffered || [])
+        .map(s => `${s.skillName} (${s.level})`)
+        .join(", ") || "No skills listed";
+
+      const card = document.createElement("div");
+      card.className = "col-md-6 col-lg-4 mb-3";
+      card.innerHTML = `
+        <div class="card h-100 shadow-sm">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex align-items-center mb-2">
+              <img src="./images/user.png" width="45" height="45" class="rounded-circle me-2" />
+              <div>
+                <h5 class="card-title mb-0">${profile.fullName || "Unnamed User"}</h5>
+                <small class="text-muted">@${profile.username || "unknown"}</small>
+              </div>
+            </div>
+            
+            <p class="card-text small">
+              <strong>Offers:</strong> ${escapeHtml(skillsOffered)}
+            </p>
+            
+            <div class="mt-auto d-flex justify-content-between">
+              <button class="btn btn-sm btn-outline-primary view-profile-btn" data-context="category" data-userid="${user._id}">
+                View Profile
+              </button>
+              <button class="btn btn-sm btn-success request-btn" data-userid="${user._id}">
+                Request
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error("Error loading dashboard recommended partners:", err);
+    loadingMsg.style.display = "none";
+    container.innerHTML = `<p class="text-danger">Could not load recommendations. Please try again.</p>`;
+  }
+}
+
 
 
 /* ensure fetch runs on DOMContentLoaded */
 document.addEventListener('DOMContentLoaded', function() {
+
   // delay slightly so other initialization runs first
   setTimeout(() => {
     fetchAndPopulateProfile();
   }, 200);
+  loadRecommendedPartners();
+  loadDashboardRecommendedPartners();
 });
