@@ -1657,7 +1657,28 @@ body {
   object-fit: cover;
 }
 
+/*
+  ==========================================
+  NEW STYLES (from your old inline styles)
+  ==========================================
+*/
 
+/* Base style for the main video (non-fullscreen) */
+#mainVideo {
+  max-height: 400px;
+  object-fit: cover;
+  background: #000;
+}
+
+/* Base style for the small video (non-fullscreen) */
+#smallVideo {
+  width: 180px;
+  height: 130px;
+  bottom: 10px;
+  right: 10px;
+  object-fit: cover;
+  background: #000;
+}
 
 #videoCallModal .modal-content {
   background: #fff;

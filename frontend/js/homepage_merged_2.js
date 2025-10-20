@@ -649,6 +649,51 @@ function displayMessages(messages) {
 //     }
 // }
 
+
+function showNotification(message, type = 'info') {
+    // Remove existing notification
+    const existingNotification = document.querySelector('.notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 1050;
+        min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        border-radius: 8px;
+    `;
+    
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Initialize skills display on page load
+// document.addEventListener('DOMContentLoaded', function() {
+//     setTimeout(() => {
+//         updateSkillsDisplay();
+//     }, 500);
+// });
+
+
+
 function initTagify() {
     if (typeof Tagify === 'undefined') { console.warn('Tagify not found — skipping tag inputs'); return; }
     const skillsInputs = document.querySelectorAll('#skillsOfferedInput, #skillsWantedInput');
@@ -3169,7 +3214,53 @@ document.getElementById("backToHomeBtn").addEventListener("click", () => {
   showSection("home");
 });
 
+// ==================================
+//      HELP & FEEDBACK FORM
+// ==================================
+document.addEventListener('DOMContentLoaded', () => {
+  const feedbackForm = document.getElementById('feedbackForm');
+  if (feedbackForm) {
+    feedbackForm.addEventListener('submit', async function(e) {
+      e.preventDefault(); // Stop the form from reloading the page
+      
+      const subject = document.getElementById('feedbackSubject').value;
+      const message = document.getElementById('feedbackMessage').value;
+      const token = localStorage.getItem('token');
 
+      if (!token) {
+        showNotification('You must be logged in to submit feedback.', 'danger');
+        return;
+      }
+
+      try {
+        const res = await fetch('api/feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token
+          },
+          body: JSON.stringify({ subject, message })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || 'Failed to submit feedback.');
+        }
+
+        // Use your existing notification function on success
+        showNotification('Thank you for your feedback!', 'success');
+        
+        // Reset the form
+        feedbackForm.reset();
+
+      } catch (err) {
+        console.error('Feedback Error:', err);
+        showNotification(err.message, 'danger');
+      }
+    });
+  }
+});
 
 
 

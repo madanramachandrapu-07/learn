@@ -390,7 +390,7 @@ function sendMessage() {
                     <li><a class="dropdown-item" href="#" onclick="showSection('requests')"><i class="fas fa-envelope me-2"></i>Requests</a></li>
                     <li><a class="dropdown-item" href="#" onclick="showSection('messages')"><i class="fas fa-comments me-2"></i>Messages</a></li>
                     <li><a class="dropdown-item" href="#" onclick="showSection('profile')"><i class="fas fa-user me-2"></i>Profile</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="showSection('help&feedback')"><i class="fas fa-question-circle"></i>&nbsp;&nbsp;Help & Feedback</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="showSection('helpAndFeedback')"><i class="fas fa-question-circle"></i>&nbsp;&nbsp;Help & Feedback</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
                 </ul>
@@ -1050,16 +1050,14 @@ function sendMessage() {
     <div class="video-container position-relative mt-2" style="min-height:400px;">
       <!-- Big video (webcam OR screen) -->
       <video id="mainVideo" autoplay playsinline 
-              class="rounded border w-100"
-              style="max-height:400px; object-fit:cover; background:#000;"></video>
+              class="rounded border w-100"></video>
 
       <!-- Floating small video -->
       <video id="smallVideo" autoplay playsinline muted
-             class="rounded border position-absolute"
-             style="width:180px; height:130px; bottom:10px; right:10px; object-fit:cover; background:#000;"></video>
+             class="rounded border position-absolute"></video>
+      </div>
     </div>
   </div>
-</div>
 
 
 
@@ -1341,6 +1339,108 @@ function sendMessage() {
     </div> <!-- row -->
   </div> <!-- container -->
 </div>
+
+
+<div id="helpAndFeedbackSection" class="content-section" style="display: none;">
+  <div class="container">
+    <h2 class="mb-4"><i class="fas fa-question-circle me-2"></i>Help & Feedback</h2>
+    
+    <div class="row">
+      <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title mb-3">Frequently Asked Questions (FAQ)</h4>
+            <div class="accordion" id="faqAccordion">
+
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeading1">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse1">
+                    How do I find a skill partner?
+                  </button>
+                </h2>
+                <div id="faqCollapse1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    You can find partners by browsing the skill categories on the home page, using the search bar, or checking the "Recommended Partners" section on your dashboard.
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeading2">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse2">
+                    How do I send a connection request?
+                  </button>
+                </h2>
+                <div id="faqCollapse2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    When you find a user's profile card (from search or categories), click the "Request" button. They will be notified and can accept or reject it from their "Requests" page.
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeading3">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse3">
+                    How does the video call work?
+                  </button>
+                </h2>
+                <div id="faqCollapse3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Once you are connected with a user (they are in your "Connections" list), you can go to the "Messages" section. Open the chat with them and click the <strong>📹 video icon</strong> in the chat header to start a call.
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="faqHeading4">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse4">
+                    How do I edit my profile?
+                  </button>
+                </h2>
+                <div id="faqCollapse4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                  <div class="accordion-body">
+                    Click your profile icon in the top-right corner and select "Profile" from the dropdown. On your profile page, click the "Edit Profile" button to update your info, skills, and availability.
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h4 class="card-title mb-3">Submit Feedback</h4>
+            <p class="text-muted">Found a bug or have an idea? We'd love to hear from you!</p>
+            <form id="feedbackForm">
+              <div class="mb-3">
+                <label for="feedbackSubject" class="form-label">Subject</label>
+                <select class="form-select" id="feedbackSubject" required>
+                  <option value="" disabled selected>Please choose a topic...</option>
+                  <option value="Bug Report">Bug Report</option>
+                  <option value="Feature Request">Feature Request</option>
+                  <option value="General Feedback">General Feedback</option>
+                  <option value="Help Request">Help Request</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="feedbackMessage" class="form-label">Message</label>
+                <textarea class="form-control" id="feedbackMessage" rows="5" placeholder="Describe your issue or idea here..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-paper-plane me-2"></i>Submit Feedback
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- Profile Modal -->
 <!-- Profile Modal -->
 <!-- <div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
