@@ -1377,6 +1377,7 @@ if (token) {
 let activeChatUserId = null; // track which user we’re chatting with
 
 // Load conversations into sidebar
+// Load conversations into sidebar
 async function loadChatSidebar() {
   const token = localStorage.getItem("token");
   if (!token) return;
@@ -1412,8 +1413,19 @@ async function loadChatSidebar() {
       const unread = conv.unreadCount || 0;
 
       const chatItem = document.createElement("button");
-      chatItem.className =
-        "list-group-item list-group-item-action chat-item d-flex justify-content-between align-items-center";
+
+      // 🌟 --- THE FIX --- 🌟
+      // Start with the base classes
+      let itemClasses = "list-group-item list-group-item-action chat-item d-flex justify-content-between align-items-center";
+      
+      // Check if this item's ID matches the active chat ID
+      if (other._id === activeChatUserId) {
+        itemClasses += " active"; // Add the .active class!
+      }
+      
+      chatItem.className = itemClasses;
+      // 🌟 --- END OF FIX --- 🌟
+
       chatItem.id = `chat-${other._id}`;
       chatItem.innerHTML = `
         <div class="d-flex align-items-center">
@@ -3173,10 +3185,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 // 🔍 Search functionality
-// 🔍 Search functionality (opens separate section)
-async function searchUsers(queryInputId = "searchInput2") {
-  const query = document.getElementById(queryInputId).value.trim();
+async function searchUsers(query) { // 1. Changed argument to query
   const resultsContainer = document.getElementById("searchResultsContainer");
+  const headerSearchInput = document.getElementById('searchInput');
+
+  // 2. Set the header search bar's value so the user sees their query
+  if (headerSearchInput) {
+    headerSearchInput.value = query;
+  }
   resultsContainer.innerHTML = "";
 
   if (!query) {
@@ -3236,19 +3252,39 @@ async function searchUsers(queryInputId = "searchInput2") {
 }
 
 // 🔹 Hook up search button
-document.getElementById("searchBtn2").addEventListener("click", () => {
-  searchUsers("searchInput2");
-});
+// document.getElementById("searchBtn2").addEventListener("click", () => {
+//   searchUsers("searchInput2");
+// });
 
-// 🔹 Press Enter to search
-document.getElementById("searchInput2").addEventListener("keydown", e => {
-  if (e.key === "Enter") searchUsers("searchInput2");
-});
+// // 🔹 Press Enter to search
+// document.getElementById("searchInput2").addEventListener("keydown", e => {
+//   if (e.key === "Enter") searchUsers("searchInput2");
+// });
 
 // 🔹 Show search section (from navbar or anywhere)
-function openSearchSection() {
-  showSection("searchResultsSection");
-  document.getElementById("searchInput2").focus();
+// 🔹 New: Handle search from the main header bar (#searchInput)
+// 🔹 Handle search from the main header bar (#searchInput)
+const headerSearchInput = document.getElementById('searchInput');
+if (headerSearchInput) {
+  headerSearchInput.addEventListener('keydown', function(e) {
+    // Check if the key pressed was "Enter"
+    if (e.key === 'Enter') {
+      e.preventDefault(); 
+      const query = headerSearchInput.value.trim();
+
+      if (query === "") {
+        return; // Don't search for nothing
+      }
+
+      // 1. Switch to the search results page
+      showSection('searchResultsSection');
+      
+      // 2. Run your search function directly with the query
+      searchUsers(query);
+      
+      // 3. We DON'T clear the header bar. The user should see their query.
+    }
+  });
 }
 
 // 🔹 Back button
@@ -3470,6 +3506,22 @@ async function loadDashboardRecommendedPartners() {
   }
 }
 
+/**
+ * Sets the welcome greeting using the name from local storage.
+ */
+function setWelcomeMessage() {
+  // Get the full name you saved during login
+  const fullName = localStorage.getItem("fullName");
+  
+  // Find the h4 tag by its new ID
+  const greetingElement = document.getElementById("welcomeGreeting");
+
+  // If we found the name and the element, update the text
+  if (fullName && greetingElement) {
+    greetingElement.textContent = `Welcome back, ${fullName}!`;
+  }
+}
+
 
 
 /* ensure fetch runs on DOMContentLoaded */
@@ -3481,4 +3533,5 @@ document.addEventListener('DOMContentLoaded', function() {
   }, 200);
   loadRecommendedPartners();
   loadDashboardRecommendedPartners();
+  setWelcomeMessage();
 });

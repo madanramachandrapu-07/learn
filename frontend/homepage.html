@@ -364,17 +364,25 @@ function sendMessage() {
                 <button id="backToHomeBtn" class="btn btn-outline-secondary btn-sm">← Back</button>
               </div>
 
-              <div class="search-bar">
+              <!-- <div class="search-bar">
                 <input type="text" id="searchInput2" placeholder="Search by name, skill, or category..." />
                 <button id="searchBtn2">Search</button>
-              </div>
+              </div> -->
 
               <div id="searchResultsContainer" class="search-results-grid"></div>
             </div>
 
-            <li><a href="#" onclick="openSearchSection()">🔍 Search</a></li>
 
 
+            <div class="search-wrapper">
+              <i class="fas fa-search search-icon"></i>
+              <input type="text" id="searchInput" class="search-box" placeholder="Search skills, users..." autocomplete="off" />
+            </div>
+            <!-- <li><a href="#" onclick="openSearchSection()">🔍 Search</a></li> -->
+             <!-- <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="search-box" placeholder="Search skills, users, categories..." autocomplete="off" />
+                </div> -->
 
 
             <!-- Profile Dropdown -->
@@ -423,7 +431,7 @@ function sendMessage() {
                     <div class="banner-section mb-5 p-4 rounded" style="background-color: #f3eefe;">
                         <div class="row align-items-center">
                             <div class="col-md-8">
-                                <h4 class="text-dark">Welcome back</h4>
+                                <h4 class="text-dark" id="welcomeGreeting">Welcome back </h4>
                                 <h1 class="fw-bold text-primary mb-2">Discover New Skills<br><span class="text-dark">Teach What You Know</span></h1>
                                 <!-- <div class="mt-3">
                                     <a href="#skillCategorySection" class="btn btn-primary me-2">Explore Skills</a>
@@ -655,7 +663,7 @@ function sendMessage() {
                     
 
                     <!-- Call to Action -->
-                    <div class="cta-section text-center">
+                    <!-- <div class="cta-section text-center">
                         <div class="cta-card">
                             <h4>Haven't added your skills yet?</h4>
                             <p>Start your journey! Add skills you can teach or want to learn.</p>
@@ -663,7 +671,7 @@ function sendMessage() {
                                 <i class="fas fa-plus me-2"></i>Add Skills
                             </button>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
 
@@ -963,17 +971,7 @@ function sendMessage() {
 </div>
               </section>
 
-              <!-- 5. Activity Timeline -->
-              <section class="activity-timeline card">
-                <h3>Activity Timeline</h3>
-                <ul id="activityList"></ul>
-              </section>
-
-              <!-- 6. Achievements -->
-              <section class="achievements card">
-                <h3>Achievements</h3>
-                <div id="achievementsList" class="badge-grid"></div>
-              </section>
+              
 
             </div>
 
@@ -1065,7 +1063,7 @@ function sendMessage() {
     <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
       <h5 id="callTitle">Live Session</h5>
       <div>
-        <button class="btn btn-sm btn-warning me-2" id="minimizeCallBtn">🔽</button>
+        <!-- <button class="btn btn-sm btn-warning me-2" id="minimizeCallBtn">🔽</button> -->
         <button class="btn btn-sm btn-secondary me-2" id="toggleFullscreenBtn">⛶</button>
         <button class="btn btn-sm btn-primary me-2" id="toggleScreenShareBtn">🖥️</button>
         <button class="btn btn-sm btn-danger" id="endCallBtn">❌</button>
@@ -1131,7 +1129,7 @@ function sendMessage() {
             <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#basicInfo">Basic Info</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#skillsTab">Skills</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#availabilityTab">Availability</a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#settingsTab">Settings</a></li>
+            <!-- <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#settingsTab">Settings</a></li> -->
           </ul>
 
           <div class="tab-content p-3">
@@ -1301,7 +1299,7 @@ function sendMessage() {
             </div>
 
             <!-- Settings -->
-            <div class="tab-pane fade" id="settingsTab">
+            <!-- <div class="tab-pane fade" id="settingsTab">
                                         <div class="settings-section">
                                             <h5>Account Settings</h5>
                                             <div class="settings-item">
@@ -1345,7 +1343,7 @@ function sendMessage() {
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
 
           </div> <!-- tab-content -->

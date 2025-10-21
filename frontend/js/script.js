@@ -510,8 +510,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Success: store the JWT and redirect
                 localStorage.setItem('token', data.token);
                 localStorage.setItem("userId", data.user._id);     // 👈 now calls will work
-                localStorage.setItem("username", data.user.username);
-                localStorage.setItem("fullName", data.user.fullName);
+                //localStorage.setItem("username", data.user.profile.username);
+                localStorage.setItem("fullName", data.user.profile.fullName);
                 const payload = parseJwt(data.token);
                 // 👇 ADD THIS LINE FOR DEBUGGING
                 console.log("TOKEN PAYLOAD:", payload);

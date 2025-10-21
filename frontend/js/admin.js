@@ -1,3 +1,16 @@
+/**
+ * Helper function to prevent XSS attacks from user-generated content
+ */
+function escapeHtml(unsafe) {
+  if (typeof unsafe !== 'string') return '';
+  return unsafe
+       .replace(/&/g, "&amp;")
+       .replace(/</g, "&lt;")
+       .replace(/>/g, "&gt;")
+       .replace(/"/g, "&quot;")
+       .replace(/'/g, "&#039;");
+}
+
 function parseJwt(token) {
   try {
     return JSON.parse(atob(token.split('.')[1]));
@@ -140,13 +153,15 @@ async function loadUsers() {
     const tableBody = document.getElementById('usersTableBody');
     tableBody.innerHTML = ''; // Clear old data
 
+    const payload = parseJwt(token);
+    const adminUserId = payload.user.id;
+
     users.forEach(user => {
       const row = tableBody.insertRow();
       
-      // Check if the user is the one currently logged in
-      const payload = parseJwt(token);
-      const isCurrentUser = (payload.user.id === user._id);
-      
+      const isCurrentUser = (adminUserId === user._id);
+      const userName = user.profile?.fullName || user.email; // Get a name for the confirm dialog
+
       row.innerHTML = `
         <td>${user.profile?.fullName || 'N/A'}</td>
         <td>${user.email}</td>
@@ -165,10 +180,17 @@ async function loadUsers() {
             Save
           </button>
         </td>
+
+        <td>
+          <button class="btn btn-sm btn-danger" onclick="deleteUser('${user._id}', '${escapeHtml(userName)}')" ${isCurrentUser ? 'disabled' : ''}>
+            Delete
+          </button>
+        </td>
       `;
     });
 
-  } catch (err) {
+  } catch (err)
+    {
     console.error('Error loading users:', err);
   }
 }
@@ -246,6 +268,48 @@ async function updateUserRole(userId) {
     alert('Error: Could not update user role.');
   }
 }
+
+
+/**
+ * Deletes a user account after double confirmation.
+ */
+async function deleteUser(userId, userName) {
+  // First confirmation
+  if (!confirm(`Are you sure you want to delete the user: ${userName}?`)) {
+    return;
+  }
+  
+  // Second, more serious confirmation
+  if (!confirm(`This action is permanent and cannot be undone. \n\nDelete ${userName}?`)) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`api/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'x-auth-token': token
+      }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed to delete user');
+    }
+
+    // Success!
+    alert(data.message);
+    loadUsers(); // Refresh the user list
+    loadDashboardStats(); // Refresh the stats (user count will change)
+
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    alert(`Error: ${err.message}`);
+  }
+}
+
+
 
 /**
  * Updates a feedback item's status via API call.

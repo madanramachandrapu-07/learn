@@ -119,6 +119,47 @@ router.patch('/users/:id', [auth, admin], async (req, res) => {
 });
 
 
+
+// ... (your other routes)
+
+// --- Delete a User ---
+// @route   DELETE api/admin/users/:id
+// @desc    Delete a user account
+// @access  Admin
+router.delete('/users/:id', [auth, admin], async (req, res) => {
+  try {
+    const userIdToDelete = req.params.id;
+    const adminUserId = req.user.id;
+
+    // 1. Prevent an admin from deleting their own account
+    if (userIdToDelete === adminUserId) {
+      return res.status(400).json({ message: 'You cannot delete your own admin account.' });
+    }
+
+    // 2. Find the user to delete
+    const user = await User.findById(userIdToDelete);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // 3. Delete the user
+    await User.findByIdAndDelete(userIdToDelete);
+    
+    // 4. (Optional but recommended) Delete related data.
+    // For example, you might want to delete their feedback:
+    // await Feedback.deleteMany({ user: userIdToDelete });
+    // You could also delete connections, messages, etc.
+
+    res.json({ message: 'User account deleted successfully.' });
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+
+
 // --- NEW ROUTE: Resolve Feedback AND Notify User ---
 // @route   POST api/admin/feedback/:id/notify
 // @desc    Update status to 'resolved' and email the user

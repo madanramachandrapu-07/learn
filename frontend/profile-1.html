@@ -500,7 +500,7 @@ async function fetchAndPopulateProfile() {
   const token = getToken();
   if (!token) return; // silently return if not logged in
   try {
-    const response = await fetch('http://localhost:5000/api/profile', {
+    const response = await fetch('api/profile', {
       method: 'GET',
       headers: { 
         'Content-Type': 'application/json',
@@ -546,7 +546,7 @@ async function submitProfile(formData) {
     return;
   }
   try {
-    const response = await fetch('http://localhost:5000/api/profile', {
+    const response = await fetch('api/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
       body: JSON.stringify(formData)
